@@ -1,0 +1,13 @@
+Package: cropmonitor
+Type: Package
+Title: Visualizes IFPRI cellphone based crop monitoring data
+Version: 0.1.0
+Author: Koen Hufkens
+Maintainer: Koen Hufkens <koen.hufkens@gmail.com>
+Description: The packages allows for easy processing of data collected 
+within a first field trial concerning cellphone based crop monitoring.
+Written in one Retro Synthwave and retro electro session.
+(https://www.youtube.com/watch?v=85bkCmaOh4o&t=207s#).
+License: AGPL-v3
+Encoding: UTF-8
+LazyData: true
