@@ -26,16 +26,14 @@ estimate.gcc = function(img,
   }
 
   # additional check if the stack / brick has three layers
-  if (nlayers(img) != 3){
+  if (raster::nlayers(img) != 3){
     stop("the raster object does not have the required 3 (RGB) layers!")
   }
 
   # in case the image is in portrait mode, transpose and flip
   # to the correct landscape mode
   if (ncol(img) < nrow(img)){
-    img = t(
-      raster::flip(img,1)
-    )
+    img = t( raster::flip(img,1) )
   }
 
   # estimate an ROI
@@ -43,28 +41,24 @@ estimate.gcc = function(img,
 
   # split out the roi and horizon data
   roi = roi_data$roi
-  horizon = roi_data$horizon
-
-  # calculate the gcc values for this ROI
+  
+  # select the ROI from the original image
   img_region = intersect(img,roi)
-
+  
   # calculate various indices
-  gcc = raster::subset(img,2) / sum(img)
-  grvi = (raster::subset(img,2) -  raster::subset(img,1)) /
-    (raster::subset(img,2) + raster::subset(img,1))
+  gcc = raster::subset(img_region,2) / sum(img_region)
+  grvi = (raster::subset(img_region,2) -  raster::subset(img_region,1)) /
+    (raster::subset(img_region,2) + raster::subset(img_region,1))
 
   # gcc 90 (90th percentile)
-  gcc_90 = quantile(gcc,0.9)
+  gcc_90 = quantile(gcc, 0.9)
 
   # GRVI (10th percentile)
   grvi_10 = quantile(grvi, 0.1)
 
   # return values as a structure list
-  return(list("roi"=roi,"horizon"=horizon,"gcc"=gcc_90,"grvi"=grvi_10))
+  return(list("roi" = roi,
+              "horizon" = roi_data$horizon,
+              "gcc" = gcc_90,
+              "grvi" = grvi_10))
 }
-
-setwd('/data/Dropbox/Research_Projects/IFPRI/data/226129/2df3a94f-26c4-4c27-a30e-f3bc895dc5a/')
-files = list.files(".","*.jpg")
-img = files[1]
-
-bla = estimate.gcc(img, plot = TRUE)

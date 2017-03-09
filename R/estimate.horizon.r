@@ -9,14 +9,16 @@ estimate.horizon = function(img, plot = FALSE){
 
   # reads in image or rasterLayer
   # to estimate transitions between
-  # land and sky
+  # land and sky using the blue channel
+  # of an RGB image (or a raster layer of choice)
 
   # internal function to estimate changepoint values
   # which occur when transitioning from
   # land to sky in the image (the horizon)
   horizon = function(x){
+    
     cpt_obj = changepoint::cpt.mean(
-      x * 30,
+      x / 100,
       method = 'PELT',
       test.stat = 'Normal',
       param.estimates = TRUE
@@ -32,38 +34,32 @@ estimate.horizon = function(img, plot = FALSE){
   if (class(img) == "character"){
 
     # read in the image to estimate the region of interest of
-    r = raster::brick(img)
-
-    # in case the image is in portrait mode, transpose and flip
-    # to the correct landscape mode
-    if (ncol(r) < nrow(r)){
-      r = t(raster::flip(r,1))
-    }
-
-    # calculate the Gcc values using the
-    # second channel of the RGB image (green)
-    # and the brightness (the sum of all channels)
-    # (this overwrites the original filename)
-    img = raster::subset(r,2) / sum(r)
+    img = raster::raster(img, 3)
   }
 
   # if the image file is a 3-layer image
   # calculate the gcc values for breakpoint
   # detection
-  if (nlayers(img) == 3){
-    img = raster::subset(img,2) / sum(img)
+  if (raster::nlayers(img) == 3){
+    img = raster::subset(img,3) # / sum(img)
   }
 
+  # in case the image is in portrait mode, transpose and flip
+  # to the correct landscape mode
+  if (ncol(img) < nrow(img)){
+    img = t(raster::flip(img,1))
+  }
+  
   # in one pass convert the rasterLayer to a matrix
   # and apply() the helper function (estimating the changepoint)
   # to all columns in the matrix
   horizon_locations = apply(as.matrix(img),2,horizon)
-
+  
   # these are filters to kick out edge values
   # more can be added to refine the algorithm
-  horizon_locations[horizon_locations < nrow(img)/2] = NA
+  # (remove columns with no obvious breakpoint)
   horizon_locations[horizon_locations == 0] = NA
-  horizon_locations[horizon_locations > round(nrow(img) * 0.9)] = NA
+  horizon_locations[horizon_locations == nrow(img)] = NA
 
   # some visual feedback mainly for debugging
   if (plot == TRUE){

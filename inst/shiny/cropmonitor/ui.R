@@ -9,26 +9,6 @@ require(DT, quietly = TRUE)
 about = source('about.r')
 help = source('help.r')
 
-# vegetation type list
-vegtype = c(
-  "All" = "ALL",
-  "Water" = "WAT",
-  "Evergreen Needleleaf forest" = "ENF",
-  "Evergreen Broadleaf forest" = "EBF",
-  "Deciduous Needleleaf forest" = "DNF",
-  "Deciduous Broadleaf forest" = "DBF",
-  "Mixed forest" = "MF",
-  "Closed shrublands" = "CSH",
-  "Open shrublands" = "OSH",
-  "Woody savannas" = "WSA",
-  "Savannas" = "BSV",
-  "Grasslands" = "GRA",
-  "Permanent wetlands" = "PWE",
-  "Croplands" = "CRO",
-  "Urban and built-up" = "URB",
-  "Cropland/Natural vegetation mosaic" = "MOS"
-)
-
 # interface elements
 
 header <- dashboardHeader(title = "Ameriflux Explorer")
@@ -81,25 +61,16 @@ body <- dashboardBody(
       tabBox(
         side = "left",
         width=12,
-        selected = "Map & Site selection",
-        tabPanel("Map & Site selection", icon = icon("globe"),
-                 fluidRow(
-                   valueBoxOutput("site_count"),
-                   valueBoxOutput("year_count"),
-                   column(4,
-                          selectInput("colors", "Vegetation Type",vegtype)
+        selected = "Map",
+        tabPanel("Map", icon = icon("globe"),
+                 fluidRow(column(3,
+                   valueBoxOutput("site_count")
                    )
                  ),
                  fluidRow(
                    column(12,
                           box(width=NULL,
-                              leafletOutput("map"),
-                              absolutePanel(id = "controls", class = "panel panel-default", fixed = TRUE,
-                                            draggable = TRUE, top = 300, left = "auto", right = 70, bottom = "auto",
-                                            width = 320, height = 350,
-                                            h4("Climatology of selected sites", align = "center"),
-                                            plotOutput("test", height=280,width=280)
-                                            )
+                              leafletOutput("map")
                           )
                     )
                 )

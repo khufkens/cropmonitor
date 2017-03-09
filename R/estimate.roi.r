@@ -47,9 +47,7 @@ estimate.roi = function(img,
   # in case the image is in portrait mode, transpose and flip
   # to the correct landscape mode
   if (ncol(img) < nrow(img)){
-    img = t(
-      raster::flip(img,1)
-      )
+    img = t( raster::flip(img,1) )
   }
 
   # calculate some basic image statistics to be used
@@ -64,13 +62,27 @@ estimate.roi = function(img,
 
   # estimate the horizon locations
   horizon_locations = estimate.horizon(img)
-
+  
   # I will split the image in two halfs to estimate the left and right
   # median locations / height of the horizon in the image as to compensate
   # for a slanted horizon (rather common in the images)
   left_horizon_location = median(horizon_locations[1:img_mid],na.rm = TRUE)
   right_horizon_location = median(horizon_locations[img_mid:img_width],na.rm = TRUE)
 
+  # in case of missing values on one half of the image, subsitute
+  if ( is.na(left_horizon_location) ){
+    left_horizon_location = right_horizon_location
+  }
+  
+  if ( is.na(right_horizon_location) ){
+    right_horizon_location = left_horizon_location
+  }
+  
+  if ( is.na(left_horizon_location) & is.na(right_horizon_location) ){
+    left_horizon_location = round(img_height / 3)
+    right_horizon_location = round(img_height / 3)
+  }
+  
   # I'm using the padding values and various coordinates to set the final
   # polygon coordinates
   left_x = padding_x
@@ -98,10 +110,10 @@ estimate.roi = function(img,
   # provide the option of plotting all data for feedback
   # and debugging, and post-processing QA/QC
   if (plot == TRUE){
-    if (file_type == "file"){
-      plotRGB(r)
+    if (file_type == "file" | raster::nlayers(img) == 3){
+      plotRGB(img)
     } else {
-      plot(img)
+      plot(r)
     }
     lines(1:ncol(img),
           horizon_locations,
@@ -110,10 +122,10 @@ estimate.roi = function(img,
     lines(roi,
           lwd = 2,
           lty = 2,
-          col = 'black')
+          col = 'yellow')
   }
 
   # return data as a SpatialPolygon object
   # can be converted to matrix or vector if needed
-  return("roi"=roi,"horizon"=horizon_locations)
+  return(list("roi"=roi,"horizon"=horizon_locations))
 }
