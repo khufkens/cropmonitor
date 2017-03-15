@@ -97,7 +97,7 @@ batch.process.database = function(database = NULL,
   cat("[This could take a while]\n\n")
   pb = txtProgressBar(min = 0, max = max(files_to_process), style = 3)
   
-  for ( i in  files_to_process ){
+  for ( i in files_to_process ){
     
     # set progressbar
     setTxtProgressBar(pb, i)
@@ -140,7 +140,7 @@ batch.process.database = function(database = NULL,
     
     # download the image data if no local copy exists
     if (!file.exists(local_image_location)){
-      error = try(download.file(online_image_location, local_image_location, quiet = FALSE))
+      error = try(download.file(online_image_location, local_image_location, quiet = TRUE))
       if (inherits(error,"try-error")){
         next # skip image if download fails
       }
@@ -177,18 +177,23 @@ batch.process.database = function(database = NULL,
     df$gcc[i] = values$gcc
     df$grvi[i] = values$grvi
     df$roi[i] = paste(as.vector(values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
+    
+    # return data fit for parallel processing
+    #gcc = values$gcc
+    #grvi = values$grvi
+    #roi = paste(as.vector(values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
+    #roi = paste(as.vector(values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
+    #return(list('gcc' = gcc, 'grvi' = grvi, 'roi' = roi))
+    
+    # write new data to file
+    jsonlite::write_json(df,"cropmonitor.json")
+    
   }
 
-  # close progress bar
-  close(pb)
-  
   # write new data to file
   jsonlite::write_json(df,"cropmonitor.json")
   
+  # close progress bar
+  close(pb)
+  
 }
-
-library(raster)
-library(jsonlite)
-library(readstata13)
-batch.process.database(database = "/data/Dropbox/Research_Projects/IFPRI/data/Pictures Data CLEAN 03_03_17.dta")
-df = readstata13::read.dta13("/data/Dropbox/Research_Projects/IFPRI/data/Pictures Data CLEAN 03_03_17.dta")
