@@ -19,9 +19,9 @@ library(cropmonitor) # load the package
 
 Data is generated based upon a database dump provided as a .dta file (this format can, and should be changed for transparency reasons).
 
-If no local database exists the local database is generated and populated. The local database is called cropmonitor.json and by default located in the your home directory in an automatically generated data folder called ~/cropmonitor. If the cropmonitor.json file exits, it is compared with the provided .dta file and updated if necessary.
+If no local database exists the local database is generated and populated. The local database is called cropmonitor.json and by default located in the your home directory in an automatically generated data folder called **~/cropmonitor**. If the cropmonitor.json file exits, it is compared with the provided .dta file and updated if necessary.
 
-In addition, the raw image data will be downloaded from the IFPRI servers onto your workstation. The raw data is stored in a subfolder in the data folder. This folder is called 'images' and matching thumbnails are stored in a 'thumbs' folder. A final output folder is also created to hold the output of plotting functions. This folder will not be generated until the plotting function is called for the first time (see below)
+In addition, the raw image data will be downloaded from the IFPRI servers onto your workstation. The raw data is stored in a subfolder in the data folder. This folder is called **'images'** and matching thumbnails are stored in a **'thumbs'** folder. A final **'output'** folder is also created to hold the output of plotting functions. This folder will not be generated until the plotting function is called for the first time. The file structure is outlined in the graph below. A different path for data storage can be specified, but is not recommended.
 
 ```
 /user/testuser/cropmonitor
@@ -43,6 +43,8 @@ In addition, the raw image data will be downloaded from the IFPRI servers onto y
 ```
 
 The thumbnails have annotations on them pertaining to the automatically selected region of interest (ROI) and the horizon line which assists in this process.
+
+![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/thumb.jpg?raw=true)
 
 ```R
 # How to update the local database
@@ -71,4 +73,3 @@ Finally to access the interactive graphical user interface for exploring the dat
 # Start the graphical user interface, to explore the data
 cropmonitor()
 ```
-
