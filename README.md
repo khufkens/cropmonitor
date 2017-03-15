@@ -62,7 +62,7 @@ plot.sites(database = "~/cropmonitor/cropmonitor.json")
 In addition to plotting data as simple time series, one can include field surveys as collected together with the image acquisitions in the field. If an XLSX file is provided, this data will be merged and visualized.
 
 ```R
-# Plotting the data without additional information
+# Plotting the data with additional 'questionaire' information
 plot.sites(database = "~/cropmonitor/cropmonitor.json",
 			 questionaire = "~/cropmonitor/questionaire.xlsx)
 ```
