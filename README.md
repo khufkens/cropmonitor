@@ -42,7 +42,7 @@ In addition, the raw image data will be downloaded from the IFPRI servers onto y
 	
 ```
 
-The thumbnails have annotations on them pertaining to the automatically selected region of interest (ROI) and the horizon line which assists in this process.
+The thumbnails have annotations on them pertaining to the automatically selected region of interest (ROI, yellow dashed line) and the horizon line (red full line) which assists in this process.
 
 ![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/thumb.jpg?raw=true)
 

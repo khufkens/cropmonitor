@@ -78,17 +78,21 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
           outer = TRUE,
           font = 2)
     
-    # plot additional info regarding damage and management
-    dam = which(!is.na(df$q7) & grep("50",df$q6))
-    abline(v = date[dam-1], col = "pink")
-    
-    # Irrigation
-    irr = grep("Irrigation",df$q10)
-    abline(v = date[irr-1], col = "lightblue")
-    
-    # Weeding
-    we = grep("Weeding",df$q10)
-    abline(v = date[we-1], col = "green")
+    # if the questionaire data is there plot additional info
+    if (any(grepl('q7',names(df)))){
+      # plot additional info regarding damage and management
+      dam = which(!is.na(df$q7) & grep("50",df$q6))
+      abline(v = date[dam-1], col = "pink")
+      
+      # Irrigation
+      irr = grep("Irrigation",df$q10)
+      abline(v = date[irr-1], col = "lightblue")
+      
+      # Weeding
+      we = grep("Weeding",df$q10)
+      abline(v = date[we-1], col = "green")
+      
+    }
     
     # new plot
     plot(
@@ -135,10 +139,10 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
   if (!is.null(questionaire)){
     quest = readxl::read_excel(questionaire)
     quest = quest[,-(2:9)]
+    
+    # merge the data on the report id
+    df = merge(df, quest, by = 'reportid', all.x = TRUE)
   }
-  
-  # merge the data on the report id
-  df = merge(df, quest, by = 'reportid', all.x = TRUE)
   
   # evaluate by (basically a tidy loop) 
   by(df,INDICES = df$uniquecropsiteid, function(x){

@@ -95,12 +95,12 @@ batch.process.database = function(database = NULL,
   cat("Processing database entries\n")
   cat("or updating the existing database.\n")
   cat("[This could take a while]\n\n")
-  pb = txtProgressBar(min = 0, max = max(files_to_process), style = 3)
+  pb = utils::txtProgressBar(min = 0, max = max(files_to_process), style = 3)
   
   for ( i in files_to_process ){
     
     # set progressbar
-    setTxtProgressBar(pb, i)
+    utils::setTxtProgressBar(pb, i)
     
     # split out some variable for clarity
     userid = df$uniqueuserid[i]
@@ -161,7 +161,7 @@ batch.process.database = function(database = NULL,
     # plot and save to file
     thumbnail_location = sprintf("%s/%s",site_user_thumb_path,filename)
     jpeg(thumbnail_location, 374, 280)
-    plotRGB(img)
+    raster::plotRGB(img)
     lines(1:ncol(img),
           values$horizon,
           lwd = 2,
@@ -194,6 +194,6 @@ batch.process.database = function(database = NULL,
   jsonlite::write_json(df,"cropmonitor.json")
   
   # close progress bar
-  close(pb)
+  utils::close(pb)
   
 }
