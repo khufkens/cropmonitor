@@ -1,6 +1,6 @@
 Package: cropmonitor
 Type: Package
-Title: Visualizes IFPRI cellphone based crop monitoring data
+Title: IFPRI cellphone based crop monitoring application
 Version: 0.1.0
 Author: Koen Hufkens
 Maintainer: Koen Hufkens <koen.hufkens@gmail.com>

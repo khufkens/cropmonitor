@@ -152,5 +152,5 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
     })
 }
 
-plot.sites(database = "/data/Dropbox/Research_Projects/IFPRI/data/cropmonitor_bak.json",
-            questionaire = "/data/Dropbox/Research_Projects/IFPRI/data/Questionnaire Answers 03_03_17.xlsx")
+# plot.sites(database = "/data/Dropbox/Research_Projects/IFPRI/data/cropmonitor_bak.json",
+#           questionaire = "/data/Dropbox/Research_Projects/IFPRI/data/Questionnaire Answers 03_03_17.xlsx")
