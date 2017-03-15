@@ -11,12 +11,13 @@
 #' 
 
 plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
-                        span = 0.3,
-                        out_dir = "~/cropmonitor"){
+                       questionaire = "~/cropmonitor/questionair.xls",
+                       span = 0.3,
+                       out_dir = "~/cropmonitor"){
   
   # plotting function, called later
   plot_stuff = function(df, out_dir = out_dir, span){
-    
+  
     # skip site with less than 20 images
     if (nrow(df) < 20){
       return(NULL)
@@ -34,16 +35,20 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
     pdf(sprintf("%s/output/%s-%s.pdf",out_dir,
                 unique(df$uniqueuserid),
                 unique(df$uniquecropsiteid)),
-        6,4)
+        6,8)
 
     # set plotting parameters
-    par(mar=c(5,4,4,5)+.1, tck = 0.03)
+    par(mar=c(5,4,4,5)+.1,
+        mfrow = c(2,1),
+        tck = 0.03,
+        lwd = 2)
     
     # plot the data
     plot(date,gcc,xlab='',ylab='GCC',xaxt='n',pch=16)
     lines(fit_gcc$x,
           fit_gcc$fitted,
-          lwd=2)
+          lwd=2,
+          ylim = c(0,1))
     
     # labels on axis etc
     tlab = seq(min(date), max(date), length.out=6)
@@ -73,7 +78,49 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
           outer = TRUE,
           font = 2)
     
-    legend("topleft",col=c('black','gray'),bg="white",pch=16,legend=c("GCC","GRVI"),bty='n')
+    # plot additional info regarding damage and management
+    dam = which(!is.na(df$q7) & grep("50",df$q6))
+    abline(v = date[dam-1], col = "pink")
+    
+    # Irrigation
+    irr = grep("Irrigation",df$q10)
+    abline(v = date[irr-1], col = "lightblue")
+    
+    # Weeding
+    we = grep("Weeding",df$q10)
+    abline(v = date[we-1], col = "green")
+    
+    # new plot
+    plot(
+      1,
+      1,
+      xlab = '',
+      ylab = '',
+      xaxt = 'n',
+      yaxt = 'n',
+      type = 'n',
+      bty = 'n'
+    )
+    
+    # plot legend(s)
+    legend(
+      "topleft",
+      col = c('black', 'gray'),
+      bg = "white",
+      pch = 16,
+      legend = c("GCC", "GRVI"),
+      title = 'Vegetation Indices',
+      bty = 'n'
+    )
+    
+    legend(
+      "topright",
+      col = c('lightblue', 'pink', 'green'),
+      pch = 16,
+      legend = c('Irrigation', 'Damage', 'Weeding'),
+      title = 'Self Reported Observations',
+      bty = 'n'
+    )
     
     dev.off()
   }
@@ -84,6 +131,15 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
   # generate time vector
   df$date = as.Date(df$date)
   
+  # read questionair
+  if (!is.null(questionaire)){
+    quest = readxl::read_excel(questionaire)
+    quest = quest[,-(2:9)]
+  }
+  
+  # merge the data on the report id
+  df = merge(df, quest, by = 'reportid', all.x = TRUE)
+  
   # evaluate by (basically a tidy loop) 
   by(df,INDICES = df$uniquecropsiteid, function(x){
     plot_stuff(x,
@@ -92,4 +148,5 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
     })
 }
 
-plot.fields(database = "/data/Dropbox/Research_Projects/IFPRI/data/cropmonitor_bak.json")
+plot.sites(database = "/data/Dropbox/Research_Projects/IFPRI/data/cropmonitor_bak.json",
+            questionaire = "/data/Dropbox/Research_Projects/IFPRI/data/Questionnaire Answers 03_03_17.xlsx")
