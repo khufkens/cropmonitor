@@ -16,7 +16,7 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
                        out_dir = "~/cropmonitor"){
   
   # plotting function, called later
-  plot_stuff = function(df, out_dir = out_dir, span){
+  plot_site = function(df, out_dir = out_dir, span){
   
     # skip site with less than 20 images
     if (nrow(df) < 20){
@@ -146,7 +146,7 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
   
   # evaluate by (basically a tidy loop) 
   by(df,INDICES = df$uniquecropsiteid, function(x){
-    plot_stuff(x,
+    plot_site(x,
               out_dir = out_dir,
               span = span)
     })

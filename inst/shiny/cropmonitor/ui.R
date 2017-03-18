@@ -11,22 +11,17 @@ help = source('help.r')
 
 # interface elements
 
-header <- dashboardHeader(title = "Ameriflux Explorer")
-sidebar <- dashboardSidebar(
+header = dashboardHeader(title = "IFPRI Crop Monitor")
+sidebar = dashboardSidebar(
   includeCSS("custom.css"),
   sidebarMenu(
     menuItem("Explore data", tabName = "explorer", icon = icon("bar-chart-o")),
-    menuItem("About Ameriflux", tabName = "about", icon = icon("info-circle")),
-    menuItem("About the package", tabName = "help", icon = icon("info-circle")),
-    menuItem("code on GitHub", icon = icon("github"), href = "https://github.com/khufkens/amerifluxr"),
-    sidebarUserPanel(name = "Koen Hufkens",
-                     image = "https://avatars2.githubusercontent.com/u/1354258?v=3&s=460",
-                     subtitle = a("Personal Website", href = "http://www.khufkens.com")
-                     )
+    menuItem("Help", tabName = "help", icon = icon("info-circle")),
+    menuItem("code on GitHub", icon = icon("github"), href = "https://github.com/khufkens/cropmonitor")
   )
 )
 
-body <- dashboardBody(
+body = dashboardBody(
   tags$head(
     tags$script(
       HTML("
@@ -46,9 +41,11 @@ body <- dashboardBody(
             $('#map').height(h); 
           }
           function resizeTable(){
-            var h = window.innerHeight - $('.navbar').height() - 500;
+            var h = window.innerHeight - $('.navbar').height() - 490;
             $('#time_series_plot').height(h);
-          }"
+            $('#preview').height(h);
+          }
+          "
       )
     )
   ),
@@ -63,14 +60,22 @@ body <- dashboardBody(
         width=12,
         selected = "Map",
         tabPanel("Map", icon = icon("globe"),
-                 fluidRow(column(3,
-                   valueBoxOutput("site_count")
+                 fluidRow(
+                   column(4,
+                          valueBoxOutput("nr_farmers", width = NULL)
+                   ),
+                   column(4,
+                          valueBoxOutput("nr_fields", width = NULL)
+                   ),
+                   column(4,
+                          selectInput('in1', 'Farmer', c(Choose='', state.name), selectize=FALSE)
                    )
                  ),
                  fluidRow(
                    column(12,
-                          box(width=NULL,
-                              leafletOutput("map")
+                          box(
+                              leafletOutput("map"),
+                              width = 12
                           )
                     )
                 )
@@ -79,25 +84,22 @@ body <- dashboardBody(
                  fluidRow(
                    column(4,
                           box(width = NULL,
-                              fluidRow(column(6,
-                                              checkboxInput("gap_fill","Gap Filled", value = FALSE, width = NULL)),
-                                       column(6,
-                                              checkboxInput("refresh","Refresh", value = FALSE, width = NULL))
-                                       ),
-                              selectInput("productivity", "Ecosystem Productivity",c("NEE (gC m-2 d-1)"="NEE","GPP (gC m-2 d-1)"="GPP"),width="100%"),
-                              selectInput("covariate", "Covariate",c("temperature (C)" = "temperature",
-                                                                     "precipitation (mm)" = "precipitation",
-                                                                     "VPD (kPa)" = "VPD",
-                                                                     "PAR (umol m-2 d-1)" = "PAR",
-                                                                     "RH (%)" = "RH"),width="100%"),
-                              selectInput("plot_type", "Plot Type",c("Time Series"="daily","Yearly Summary"="yearly","NEE phenology"="nee_phen"),width="100%"))),
+                              selectInput("plot_type", "Plot Type",
+                                          c("Gcc"="gcc","GRVI"="grvi"),
+                                          width="100%"))),
                    column(8,
                           box(width = NULL,
                               DT::dataTableOutput("table")
                           ))
                  ),
                  fluidRow(
-                   column(12,
+                   column(4,
+                     box(
+                       width = NULL,
+                       plotOutput("preview")
+                     )
+                   ),
+                   column(8,
                           box(width = NULL,
                               plotlyOutput("time_series_plot")
                           )
@@ -119,4 +121,4 @@ body <- dashboardBody(
   )
 )
 
-ui <- dashboardPage(skin = "blue", header, sidebar, body)
+ui = dashboardPage(skin = "green", header, sidebar, body)
