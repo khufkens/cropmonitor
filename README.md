@@ -1,9 +1,9 @@
 
 # Cropmonitor
 
-The IFPRI crop monitor R package calculate greenness indices (Gcc and GRVI) for cellphone based data acquisitions within the context of cellphone based index-based micro-insurance.
+The IFPRI crop monitor R package calculates greenness indices (Gcc and GRVI) for cellphone based data acquisitions within the context of cellphone based index-based micro-insurance.
 
-The tool allows for the visualization of the database, but requires the population of a local database (see below).
+The tool allows for the visualization of the database, but requires a local database to be updated (see below).
 
 ## Installation
 
