@@ -11,7 +11,7 @@
 #' 
 
 plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
-                       questionaire = "~/cropmonitor/questionair.xls",
+                       questionaire = "~/cropmonitor/questionaire.xlsx",
                        span = 0.3,
                        out_dir = "~/cropmonitor"){
   
@@ -23,6 +23,8 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
       return(NULL)
     }
   
+    print(df$q10)
+    
     # sort things, database isn't ordered  
     grvi = df$grvi[order(df$date)]
     gcc = df$gcc[order(df$date)]
@@ -80,6 +82,7 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
     
     # if the questionaire data is there plot additional info
     if (any(grepl('q7',names(df)))){
+      
       # plot additional info regarding damage and management
       dam = which(!is.na(df$q7) & grep("50",df$q6))
       abline(v = date[dam-1], col = "pink")
@@ -126,9 +129,13 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
       bty = 'n'
     )
     
+    # remove variables
+    rm('dam','we','irr')
+    
+    # shut down device
     dev.off()
   }
-  
+   
   # read local database
   df = jsonlite::fromJSON(database)
   

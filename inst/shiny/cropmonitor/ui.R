@@ -37,7 +37,7 @@ body = dashboardBody(
             window.dispatchEvent(new Event('resize'));
           });
           function resizeMap(){
-            var h = window.innerHeight - $('.navbar').height() - 280; // Get dashboardBody height
+            var h = window.innerHeight - $('.navbar').height() - 150; // Get dashboardBody height
             $('#map').height(h); 
           }
           function resizeTable(){
@@ -61,23 +61,17 @@ body = dashboardBody(
         selected = "Map",
         tabPanel("Map", icon = icon("globe"),
                  fluidRow(
-                   column(4,
-                          valueBoxOutput("nr_farmers", width = NULL)
-                   ),
-                   column(4,
-                          valueBoxOutput("nr_fields", width = NULL)
-                   ),
-                   column(4,
-                          selectInput('in1', 'Farmer', c(Choose='', state.name), selectize=FALSE)
-                   )
-                 ),
-                 fluidRow(
-                   column(12,
+                   column(9,
                           box(
                               leafletOutput("map"),
                               width = 12
                           )
-                    )
+                    ),
+                   column(3,
+                          valueBoxOutput("nr_farmers", width = NULL),
+                          valueBoxOutput("nr_fields", width = NULL),
+                          plotOutput("map_preview")
+                          )
                 )
         ),
         tabPanel("Plot data", icon = icon("bar-chart-o"),

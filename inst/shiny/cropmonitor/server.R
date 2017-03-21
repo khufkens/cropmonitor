@@ -34,7 +34,7 @@ if (machine == "squeeze" | user == "khufkens") {
 df = jsonlite::fromJSON("~/cropmonitor/cropmonitor.json")
 df = df[which(df$longitude > 70),]
 
-# read questionair
+# read questionairs
 if (file.exists("~/cropmonitor/questionaire.xlsx")){
   
   quest = readxl::read_excel("~/cropmonitor/questionaire.xlsx")
@@ -42,10 +42,9 @@ if (file.exists("~/cropmonitor/questionaire.xlsx")){
   
   # merge the data on the report id
   df = merge(df, quest, by = 'reportid', all.x = TRUE)
-} else {
-  
 }
 
+# generate strings for thumbs
 thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
                  df$uniqueuserid,
                  df$uniquecropsiteid,
@@ -53,19 +52,21 @@ thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
                  df$uniquecropsiteid,
                  df$pic_timestamp)
 
+# summarize variables (ugly)
 latitude = as.vector(by(df$latitude, INDICES = df$uniquecropsiteid, mean))
 longitude = as.vector(by(df$longitude, INDICES = df$uniquecropsiteid, mean))
 field = as.vector(by(df$uniquecropsiteid, INDICES = df$uniquecropsiteid, function(x) as.character(x[1]) ))
 user = as.vector(by(df$uniqueuserid, INDICES = df$uniquecropsiteid, mean))
 image_id = as.vector(by(thumbs, INDICES = df$uniquecropsiteid, function(x) as.character(x[1]) ))
-thumbs = paste("<img src='/",basename(image_id),"'>",sep = '')
+id = 1:length(image_id)
 
 # count the images
 image_count = table(df$uniquecropsiteid)
 image_count = data.frame(as.character(names(image_count)),as.numeric(image_count))
 colnames(image_count) = c('field','images')
 
-map_data = data.frame(user, field, latitude, longitude)
+# group map data
+map_data = data.frame(user, field, latitude, longitude, id)
 map_data = merge(map_data, image_count, by = 'field', all.x = TRUE)
 
 # start server routine
@@ -73,10 +74,7 @@ server = function(input, output, session) {
   
   # Reactive expression for the data subsetted
   # to what the user selected
-  v1 = reactiveValues()
-  v2 = reactiveValues()
-  reset = reactiveValues()
-  row_clicked = reactiveValues()
+  map_click = reactiveValues()
 
   getValueData = function(table) {
     
@@ -104,7 +102,7 @@ server = function(input, output, session) {
   
   # update the data table used to link to the fields
   output$table = DT::renderDataTable({
-    return(map_data)
+    return(map_data[,-5])
   },
   selection = "single",
   options = list(lengthMenu = list(c(5, 10), c('5', '10'))),
@@ -120,6 +118,7 @@ server = function(input, output, session) {
       ) %>%
       addCircleMarkers(lat = ~latitude,
                        lng = ~longitude,
+                       layerId=~id,
                        color = "yellow",
                        radius = 6,
                        stroke = FALSE,
@@ -128,6 +127,11 @@ server = function(input, output, session) {
               lat = mean(map_data$latitude),
               zoom = 8)
   })
+  
+  # store the click
+  #observeEvent(input$map_marker_click,{
+  #  image_id = 
+  #})
   
   # udpate the data
   processData = function(myrow) {
@@ -142,7 +146,7 @@ server = function(input, output, session) {
     field = as.character(map_data$field[as.numeric(myrow)])
     plot_data = df[which(df$uniquecropsiteid == field),]
 
-    if (nrow(plot_data)<20){
+    if (nrow(plot_data) < 20){
       
       # return null if not enough values found
       return(NULL)
@@ -157,20 +161,42 @@ server = function(input, output, session) {
 
   # observe the state of the table, if changed update the data
   inputData = reactive({
-  processData(
-    as.numeric(input$table_row_last_clicked)
-  )
+    processData(as.numeric(input$table_row_last_clicked))
   })
 
-  output$preview = renderPlot({
-    
-    if (length(input$table_row_last_clicked) != 0) {
-      r = brick(image_id[input$table_row_last_clicked])
-      plotRGB(r)
+  # preview in the map area
+  output$map_preview = renderPlot({
+    if (length(input$map_marker_click$id) != 0) {
+      r = raster::brick(image_id[input$map_marker_click$id])
+      raster::plotRGB(r)
+    } else {
+      plot(0,0,
+           xlab = '',
+           ylab = '',
+           xaxt = 'n',
+           yaxt = 'n',
+           bty = 'n',
+           type = 'n')
+      text(0,0,labels = "No Preview")
     }
-    
   })
   
+  # preview in the time-series plotting area
+  output$preview = renderPlot({
+    if (length(input$table_row_last_clicked) != 0) {
+      r = raster::brick(image_id[input$table_row_last_clicked])
+      raster::plotRGB(r)
+    } else {
+      plot(0,0,
+           xlab = '',
+           ylab = '',
+           xaxt = 'n',
+           yaxt = 'n',
+           bty = 'n',
+           type = 'n')
+      text(0,0,labels = "No Preview")
+    }
+  })
   
   # plot the data / MESSY CLEAN UP!!!
   output$time_series_plot = renderPlotly({
@@ -218,12 +244,15 @@ server = function(input, output, session) {
       
       # sort things, database isn't ordered
       date = as.POSIXct(plot_data$datetime)
+      
       #date = plot_data$datetime
       if (input$plot_type == "gcc") {
         greenness = plot_data$gcc[order(date)]
       } else {
         greenness = plot_data$grvi[order(date)]
       }
+      
+      # sort stuff
       date = date[order(date)]
       
       # smooth the data using a loess fit
@@ -232,9 +261,24 @@ server = function(input, output, session) {
       greenness_ci = fit_greenness$se * 1.96
       greenness_smooth = fit_greenness$fit
       
+      # if the questionaire data is there plot additional info
+      if (any(grepl('q7',names(plot_data)))){
+        
+        # damage dates
+        dam = which(!is.na(plot_data$q7) & grep("50",plot_data$q6))
+        
+        # Irrigation dates
+        irr = grep("Irrigation",plot_data$q10)
+        
+        print(plot_data$q10)
+        
+        # Weeding dates
+        we = grep("Weeding",plot_data$q10)
+        
+      }
+      
       # check the plotting type
         p = plot_ly(
-          #data = plot_data,
           x = date,
           y = greenness_smooth,
           mode = "lines",
@@ -273,6 +317,30 @@ server = function(input, output, session) {
             marker = list(color = "black", symbol = "circle", size = 5),
             name = input$plot_type,
             showlegend = TRUE
+          ) %>%
+          add_trace(
+            x = date[irr],
+            y = greenness_smooth[irr],
+            mode = "markers",
+            marker = list(color = "#3182bd", symbol = "circle", size = 10),
+            showlegend = TRUE,
+            name = "Irrigation"
+          ) %>%
+          add_trace(
+            x = date[we],
+            y = greenness_smooth[we] + 0.01,
+            mode = "markers",
+            marker = list(color = "#a1d99b", symbol = "circle", size = 10),
+            showlegend = TRUE,
+            name = "Weeding"
+          ) %>%
+          add_trace(
+            x = date[dam],
+            y = greenness_smooth[dam] - 0.01,
+            mode = "markers",
+            marker = list(color = "#f03b20", symbol = "circle", size = 10),
+            showlegend = TRUE,
+            name = "Reported Damage"
           ) %>%
           layout(
             xaxis = list(title = ""),
