@@ -46,7 +46,8 @@ The thumbnails have annotations on them pertaining to the automatically selected
 
 ![](https://www.dropbox.com/s/4xffya4jr4g89cd/thumb.jpg?raw=1)
 
-<img src="https://www.dropbox.com/s/4xffya4jr4g89cd/thumb.jpg">
+![](https://www.dropbox.com/s/4xffya4jr4g89cd/thumb.jpg?dl=1)
+
 
 ```R
 # How to update the local database
