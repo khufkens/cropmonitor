@@ -23,6 +23,24 @@ If no local database exists the local database is generated and populated. The l
 
 In addition, the raw image data will be downloaded from the IFPRI servers onto your workstation. The raw data is stored in a subfolder in the data folder. This folder is called **'images'** and matching thumbnails are stored in a **'thumbs'** folder. A final **'output'** folder is also created to hold the output of plotting functions. This folder will not be generated until the plotting function is called for the first time. The file structure is outlined in the graph below. A different path for data storage can be specified, but is not recommended.
 
+```
+/users/testuser/cropmonitor
+	│   cropmonitor.json
+	└─── images
+	│   └───user_id
+	│       │───cropsite_id
+	│       │   ...
+	|
+	└─── thumbs
+	|   └───user_id
+	|       │───cropsite_id
+	|       │   ...
+	|
+	└─── output
+ 		    figure.pdf
+			 ...
+
+```
 
 The thumbnails have annotations on them pertaining to the automatically selected region of interest (ROI, yellow dashed line) and the horizon line (red full line) which assists in this process.
 
