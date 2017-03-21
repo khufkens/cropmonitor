@@ -43,7 +43,7 @@ In addition, the raw image data will be downloaded from the IFPRI servers onto y
 
 The thumbnails have annotations on them pertaining to the automatically selected region of interest (ROI, yellow dashed line) and the horizon line (red full line) which assists in this process.
 
-![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/thumb.jpg?raw=true)
+[](https://github.com/khufkens/cropmonitor/blob/master/inst/data/thumb.jpg?raw=true)
 
 ```R
 # How to update the local database
@@ -68,7 +68,7 @@ plot.sites(database = "~/cropmonitor/cropmonitor.json",
 
 An example plot is shown below.
 
-![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/plot.png?raw=true)
+[](https://github.com/khufkens/cropmonitor/blob/master/inst/data/plot.png?raw=true)
 
 Finally to access the interactive graphical user interface for exploring the data execute the following command.
 
@@ -79,12 +79,12 @@ cropmonitor()
 
 The opening screens shows the site locations as yellow dots on the map. Clicking on the dots will show you a preview at the location (a cellphone image).
 
-![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/map.png?raw=true)
+[](https://github.com/khufkens/cropmonitor/blob/master/inst/data/map.png?raw=true)
 
-![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/map_detail.png?raw=true)
+[](https://github.com/khufkens/cropmonitor/blob/master/inst/data/map_detail.png?raw=true)
 
 On the second window one can scroll through all data (time series plotted by field). The displayed table can be sorted based on, farmer name, field name, latitude, longitude or number of images collected. The time series plotted can be changed using the dropdown box on the left hand side.
 
 Clicking on a site location in the table will bring up a graph (bottom right) and a preview of the field site (bottom left). In addition to the normal time series a fitted curve is shown together with it's 95% confidence intervals, as well as details regarding management such as weeding, irrigation and self-reported damage.
 
-![](https://github.com/khufkens/cropmonitor/blob/master/inst/data/time_series.png?raw=true)
+[](https://github.com/khufkens/cropmonitor/blob/master/inst/data/time_series.png?raw=true)
