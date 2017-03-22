@@ -7,10 +7,10 @@ The tool allows for the visualization of the database, but requires a local data
 
 ## Installation
 
-clone the project to your home computer using the following command (with git installed)
+Install the cropmonitor R package using the following code:
 
 ```R
-require(devtools)
+if (!require(devtools)) install.packages("devtools")
 install_github("khufkens/cropmonitor")
 library(cropmonitor)
 ```
