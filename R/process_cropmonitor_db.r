@@ -4,6 +4,9 @@
 #' @param database: STATA file as provided by IFPRI
 #' @param path: path of the IFPRI database images to process
 #' @param plot: TRUE / FALSE (output summary plots?)
+#' @param force: force regeneration of all indices
+#' @param force_all: force regeneration of all data in database
+#' including estimating the horizon and ROI, as well as indices / features
 #' @keywords gcc calculation, QA/GC
 #' @export
 #' @examples
@@ -12,7 +15,9 @@
 process_cropmonitor_db = function(database = NULL,
                                   path = "~/cropmonitor/",
                                   server = "http://cdn.wheatcam.ifpri.org/ReportImages",
-                                  plot = FALSE){
+                                  plot = FALSE,
+                                  force = FALSE,
+                                  force_all = FALSE){
 
   # create directory to hold all the data
   if (!dir.exists(path)){
@@ -145,6 +150,9 @@ process_cropmonitor_db = function(database = NULL,
         next # skip image if download fails
       }
     }
+    
+    # check if an ROI exists in the database, if so use this
+    # don't recalculate unless the FORCE flag is set.
     
     # calculate the gcc etc values
     values = calculate_gcc(local_image_location)
