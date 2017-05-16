@@ -9,7 +9,7 @@
 #' @examples
 #' # no examples yet
 
-batch.process.database = function(database = NULL,
+process_cropmonitor_db = function(database = NULL,
                                   path = "~/cropmonitor/",
                                   server = "http://cdn.wheatcam.ifpri.org/ReportImages",
                                   plot = FALSE){
@@ -147,7 +147,7 @@ batch.process.database = function(database = NULL,
     }
     
     # calculate the gcc etc values
-    values = estimate.gcc(local_image_location)
+    values = calculate_gcc(local_image_location)
     
     # visualize the regions of interest and horizon
     # in an image thumbnail for review

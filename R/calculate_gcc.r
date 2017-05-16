@@ -8,7 +8,7 @@
 #' @examples
 #' # no examples yet
 
-estimate.gcc = function(img,
+calculate_gcc = function(img,
                         plot = FALSE){
 
   # set default file type
@@ -37,7 +37,7 @@ estimate.gcc = function(img,
   }
 
   # estimate an ROI
-  roi_data = estimate.roi(img, plot = plot)
+  roi_data = estimate_roi(img, plot = plot)
 
   # split out the roi and horizon data
   roi = roi_data$roi

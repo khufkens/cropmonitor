@@ -10,7 +10,7 @@
 #' 
 #' 
 
-plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
+plot_cropmonitor_sites = function( database = "~/cropmonitor/cropmonitor.json",
                        questionaire = "~/cropmonitor/questionaire.xlsx",
                        span = 0.3,
                        out_dir = "~/cropmonitor"){
@@ -159,5 +159,5 @@ plot.sites = function( database = "~/cropmonitor/cropmonitor.json",
     })
 }
 
-# plot.sites(database = "/data/Dropbox/Research_Projects/IFPRI/data/cropmonitor_bak.json",
+# plot_cropmonitor_sites(database = "/data/Dropbox/Research_Projects/IFPRI/data/cropmonitor_bak.json",
 #           questionaire = "/data/Dropbox/Research_Projects/IFPRI/data/Questionnaire Answers 03_03_17.xlsx")

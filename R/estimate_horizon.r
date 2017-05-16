@@ -5,7 +5,8 @@
 #' @examples
 #' # no examples yet
 
-estimate.horizon = function(img, plot = FALSE){
+estimate_horizon = function(img, 
+                            plot = FALSE){
 
   # reads in image or rasterLayer
   # to estimate transitions between

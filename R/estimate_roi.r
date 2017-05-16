@@ -14,7 +14,7 @@
 #' @examples
 #' # no examples yet
 
-estimate.roi = function(img,
+estimate_roi = function(img,
                         padding = 0.1,
                         plot = FALSE){
 
@@ -61,7 +61,7 @@ estimate.roi = function(img,
   padding_x = round(ncol(img) * padding)
 
   # estimate the horizon locations
-  horizon_locations = estimate.horizon(img)
+  horizon_locations = estimate_horizon(img)
   
   # I will split the image in two halfs to estimate the left and right
   # median locations / height of the horizon in the image as to compensate

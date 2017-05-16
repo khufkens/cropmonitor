@@ -55,9 +55,13 @@ thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
 # summarize variables (ugly)
 latitude = as.vector(by(df$latitude, INDICES = df$uniquecropsiteid, mean))
 longitude = as.vector(by(df$longitude, INDICES = df$uniquecropsiteid, mean))
-field = as.vector(by(df$uniquecropsiteid, INDICES = df$uniquecropsiteid, function(x) as.character(x[1]) ))
+field = as.vector(by(df$uniquecropsiteid,
+                     INDICES = df$uniquecropsiteid,
+                     function(x) as.character(x[1])))
 user = as.vector(by(df$uniqueuserid, INDICES = df$uniquecropsiteid, mean))
-image_id = as.vector(by(thumbs, INDICES = df$uniquecropsiteid, function(x) as.character(x[1]) ))
+image_id = as.vector(by(thumbs,
+                        INDICES = df$uniquecropsiteid,
+                        function(x) as.character(x[1])))
 id = 1:length(image_id)
 
 # count the images
@@ -127,11 +131,6 @@ server = function(input, output, session) {
               lat = mean(map_data$latitude),
               zoom = 8)
   })
-  
-  # store the click
-  #observeEvent(input$map_marker_click,{
-  #  image_id = 
-  #})
   
   # udpate the data
   processData = function(myrow) {
