@@ -151,11 +151,16 @@ process_cropmonitor_db = function(database = NULL,
       }
     }
     
-    # check if an ROI exists in the database, if so use this
-    # don't recalculate unless the FORCE flag is set.
+    # estimate an ROI
+    roi = estimate_roi(local_image_location)$roi
     
-    # calculate the gcc etc values
-    values = calculate_gcc(local_image_location)
+    # calculate the gcc / grvi
+    greenness_values = calculate_gcc(local_image_location,
+                                     roi = roi)
+    
+    # calculate the glcm
+    greenness_values = calculate_glcm(local_image_location,
+                                     roi = roi)
     
     # visualize the regions of interest and horizon
     # in an image thumbnail for review
@@ -182,16 +187,9 @@ process_cropmonitor_db = function(database = NULL,
     
     # stuff things back into the original dataframe
     # long objects are stored as comma separated strings
-    df$gcc[i] = values$gcc
-    df$grvi[i] = values$grvi
-    df$roi[i] = paste(as.vector(values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
-    
-    # return data fit for parallel processing
-    #gcc = values$gcc
-    #grvi = values$grvi
-    #roi = paste(as.vector(values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
-    #roi = paste(as.vector(values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
-    #return(list('gcc' = gcc, 'grvi' = grvi, 'roi' = roi))
+    df$gcc[i] = greenness_values$gcc
+    df$grvi[i] = greenness_values$grvi
+    df$roi[i] = paste(as.vector(greenness_values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
     
     # write new data to file
     jsonlite::write_json(df,"cropmonitor.json")

@@ -17,37 +17,16 @@
 estimate_roi = function(img,
                         padding = 0.1,
                         plot = FALSE){
-
-  # set default file type
-  file_type = "img"
-
+  
   # verify data formats if not transform
   # to the correct data format
   if (class(img) == "character"){
-
-    # set file type
-    file_type = "file"
-
-    # read in the image to estimate the region of interest of
-    r = raster::brick(img)
-
-    # in case the image is in portrait mode, transpose and flip
-    # to the correct landscape mode
-    if (ncol(r) < nrow(r)){
-      r = t(raster::flip(r,1))
-    }
-
-    # calculate the Gcc values using the
-    # second channel of the RGB image (green)
-    # and the brightness (the sum of all channels)
-    # (this overwrites the original filename)
-    img = raster::subset(r,2) / sum(r)
+    img = raster::brick(img)
   }
 
-  # in case the image is in portrait mode, transpose and flip
-  # to the correct landscape mode
-  if (ncol(img) < nrow(img)){
-    img = t( raster::flip(img,1) )
+  # calculate Gcc if image has 3 layers
+  if (nlayers(img)==3){
+    img = img[[2]] / sum(img)
   }
 
   # calculate some basic image statistics to be used
@@ -110,10 +89,10 @@ estimate_roi = function(img,
   # provide the option of plotting all data for feedback
   # and debugging, and post-processing QA/QC
   if (plot == TRUE){
-    if (file_type == "file" | raster::nlayers(img) == 3){
+    if (class(img) == "character" | raster::nlayers(img) == 3){
       plotRGB(img)
     } else {
-      plot(r)
+      plot(img)
     }
     lines(1:ncol(img),
           horizon_locations,
@@ -127,5 +106,6 @@ estimate_roi = function(img,
 
   # return data as a SpatialPolygon object
   # can be converted to matrix or vector if needed
-  return(list("roi"=roi,"horizon"=horizon_locations))
+  return(list("roi" = roi,
+              "horizon" = horizon_locations))
 }

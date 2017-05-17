@@ -9,7 +9,7 @@
 #' # no examples yet
 
 calculate_gcc = function(img,
-                        plot = FALSE){
+                         roi = NULL){
 
   # set default file type
   file_type = "img"
@@ -36,14 +36,17 @@ calculate_gcc = function(img,
     img = t( raster::flip(img,1) )
   }
 
-  # estimate an ROI
-  roi_data = estimate_roi(img, plot = plot)
-
-  # split out the roi and horizon data
-  roi = roi_data$roi
+  # if no roi is specified calcualte the roi
+  if (is.null(roi)){
+    # estimate an ROI
+    roi_data = estimate_roi(img, plot = plot)
+    
+    # split out the roi and horizon data
+    roi = roi_data$roi
+  }
   
   # select the ROI from the original image
-  img_region = intersect(img,roi)
+  img_region = mask(img,roi)
   
   # calculate various indices
   gcc = raster::subset(img_region,2) / sum(img_region)
