@@ -8,7 +8,7 @@
 #' # no examples yet
 
 calculate_glcm = function(img,
-                         roi = NULL){
+                          roi = NULL){
 
   # verify data formats if not transform
   # to the correct data format
@@ -16,7 +16,7 @@ calculate_glcm = function(img,
     img = raster::brick(img)
   }
 
-  # if no roi is specified calcualte the roi
+  # if no roi is specified calculate the roi
   if (is.null(roi)){
     roi = estimate_roi(img)
   }
@@ -29,10 +29,10 @@ calculate_glcm = function(img,
   }
   
   # select the ROI from the original image
-  img_region = mask(green_channel, roi$roi)
+  img_region = mask(img, roi$roi)
   
-  plot(img_region)
-  lines(roi$roi)
+  #plot(img_region)
+  #lines(roi$roi)
   
   # fix windows relative size based upon the size of the 
   # image to process, this to standardize the metrics across

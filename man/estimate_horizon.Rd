@@ -4,10 +4,15 @@
 \alias{estimate_horizon}
 \title{Start the cropmonitor shiny interface}
 \usage{
-estimate_horizon(img, plot = FALSE)
+estimate_horizon(img, penalty = 0.2, plot = FALSE)
 }
 \arguments{
-\item{img:}{image to process}
+\item{img:}{single raster layer to process}
+
+\item{penalty:}{parameter to set the sensitivity of the changepoint
+detection used in finding the horizon.}
+
+\item{plot:}{visualize the horizon on the image}
 }
 \description{
 Start the cropmonitor shiny interface

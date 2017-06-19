@@ -25,10 +25,19 @@ estimate_roi = function(img,
   }
 
   # calculate Gcc if image has 3 layers
-  if (nlayers(img)==3){
-    img = img[[2]] / sum(img)
-  }
+  #if (nlayers(img)==3){
+  #  img = img[[2]] / sum(img)
+  #}
 
+  # if possible use the bcc index
+  # to find the horizon, distant pixels
+  # or sky in general are always more blue
+  # than those closer to the camera or containing
+  # non vegetative or soil components
+  if (nlayers(img) == 3){
+    img = img[[3]] / sum(img)
+  }
+  
   # calculate some basic image statistics to be used
   # in further processing
   img_mid = ncol(img)/2

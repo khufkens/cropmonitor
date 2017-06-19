@@ -12,16 +12,26 @@
 #' @examples
 #' # no examples yet
 
-process_cropmonitor_db = function(database = NULL,
-                                  path = "~/cropmonitor/",
-                                  server = "http://cdn.wheatcam.ifpri.org/ReportImages",
-                                  plot = FALSE,
-                                  force = FALSE,
-                                  force_all = FALSE){
-
+process_cropmonitor_db = 
+  function(database = NULL,
+           path = "~/cropmonitor/",
+           server = "http://cdn.wheatcam.ifpri.org/ReportImages",
+           thumbnails = FALSE,
+           force = FALSE,
+           ncores = 6){
+  
+  # for consistency with list.files() use tilde
+  # expansion if applicable
+  path = path.expand(path = path)
+  
+  # check if parameters are available
+  if ( is.null(database) ){
+    stop('No database file available!')
+  }
+  
   # create directory to hold all the data
   if (!dir.exists(path)){
-    dir.create(path)
+    stop('data directory does not exist')
   }
   
   # create image and thumb paths
@@ -31,28 +41,54 @@ process_cropmonitor_db = function(database = NULL,
   # create subdirs holding original images
   # and image thumbnails
   if (!dir.exists(img_path) ){
-    dir.create(img_path)  
-  }
-  if (!dir.exists(thumb_path) ){
-    dir.create(thumb_path)
+    stop('data directory does not exist')  
   }
   
   # move into the directory
   setwd(path)
   
-  # check if parameters are available
-  if ( is.null(database) ){
-    stop("Not all required parameters available!")
-  }
-
   # read in database file
+  # sort by user id
   df = readstata13::read.dta13(database)
   
-  # create empty data frame objects to populate
-  # with new data
-  df$gcc = NA
-  df$grvi = NA
-  df$roi = NA
+  # check which files exist in the current directory
+  # split out some variable for clarity
+  userid = df$old_uniqueuserid
+  reportid = df$reportid
+  cropsite = df$old_uniquecropsiteid
+  epoch_date = df$pic_timestamp
+  
+  user_img_path = paste(img_path, userid, sep = "/")
+  user_thumb_path = paste(thumb_path, userid, sep = "/")
+  site_user_img_path = paste(user_img_path, cropsite, sep = "/")
+  site_user_thumb_path = paste(user_thumb_path, cropsite, sep = "/")
+  
+  # create image location string
+  filename = paste(userid,"-",
+                   cropsite,"-",
+                   epoch_date,".jpg", sep = "")
+  
+  online_image_location = paste(server,
+                                userid,
+                                cropsite,
+                                filename,
+                                sep = "/")
+  
+  local_image_location = paste(site_user_img_path,
+                               filename,
+                               sep = "/")
+  
+  thumbnail_location = paste(site_user_thumb_path,
+                             filename,
+                             sep = "/")
+  
+  current_image_location = list.files(img_path,
+                                      "*.jpg",
+                                      recursive = TRUE,
+                                      full.names = TRUE)
+  
+  # list the index locations of files which are in the local image db
+  files_to_process = which(local_image_location %in% current_image_location)
   
   # compare current local database with the one provided
   # as a parameter
@@ -61,145 +97,132 @@ process_cropmonitor_db = function(database = NULL,
     # read local database
     local_database = jsonlite::fromJSON("cropmonitor.json")
     
+    # check if the header is not the same
+    # calculate everything regardless
+    if(names(df) != names(local_database)){
+      break
+    }
+    
     # create unique identifiers to compare files
     old_file_id = sprintf("%s-%s-%s",
-                          local_database$uniqueuserid,
-                          local_database$uniquecropsiteid,
+                          local_database$old_uniqueuserid,
+                          local_database$old_uniquecropsiteid,
                           local_database$pic_timestamp)
     
     new_file_id = sprintf("%s-%s-%s",
-                          df$uniqueuserid,
-                          df$uniquecropsiteid,
+                          df$old_uniqueuserid,
+                          df$old_uniquecropsiteid,
                           df$pic_timestamp)
     
     # figure out which lines to progress
     # those in the DTA file but not in the existing JSON one
-    files_to_process = which(!new_file_id %in% old_file_id)
+    duplicates = which(new_file_id %in% old_file_id)
     
-    # make no assumptions on the location of the columns wiht
-    # greenness an other ancillary data, determine dynamically 
-    new_cols = which(names(df) == c("gcc","grvi","roi"))
-    old_cols = which(names(local_database) == c("gcc","grvi","roi"))
+    # copy duplicates
     
-    # loop over all data in the old file, and populate
-    # the read in DTA file (presumably with extra images added)
-    for ( j in 1:length(old_file_id)){
-      loc = which(new_file_id %in% old_file_id[j])
-      df[loc,new_cols] = local_database[j,old_cols]
-    }
-    
-  } else {
-    
-    # on clean start, calculate everything
-    files_to_process = 1:nrow(df)
-  
   }
   
   # now loop over all new images in the database and fill in the
   # missing values. Report progress
   cat("Processing database entries\n")
-  cat("or updating the existing database.\n")
-  cat("[This could take a while]\n\n")
-  pb = utils::txtProgressBar(min = 0, max = max(files_to_process), style = 3)
+  cat(sprintf("will finish in ~ %s days on a single core macbook pro.\n",
+              round((length(files_to_process) * 13) / (3600 * 24 * ncores),2)))
+
+  # set the number of cores
+  cl = makeCluster(ncores)
+  registerDoSNOW(cl)
   
-  for ( i in files_to_process ){
+  # set progress bar
+  pb = txtProgressBar(max = length(files_to_process),
+                       style=3)
+  progress = function(n) setTxtProgressBar(pb, n)
+  opts = list(progress = progress)
+  
+  # use lapply instead of loop
+  crop_index_details = foreach(i = files_to_process[1:5],
+                               .combine = rbind,
+                               .options.snow = opts) %do% {
     
-    # set progressbar
-    utils::setTxtProgressBar(pb, i)
-    
-    # split out some variable for clarity
-    userid = df$uniqueuserid[i]
-    reportid = df$reportid[i]
-    cropsite = df$uniquecropsiteid[i]
-    epoch_date = df$pic_timestamp[i]
-    
-    user_img_path = sprintf("%s/%s",img_path,userid)
-    user_thumb_path = sprintf("%s/%s",thumb_path,userid)
-    site_user_img_path = sprintf("%s/%s",user_img_path,cropsite)
-    site_user_thumb_path = sprintf("%s/%s",user_thumb_path,cropsite)
-    
-    # create folders based on the farmer's id
-    if (!dir.exists(user_img_path) ){
-      dir.create(user_img_path)  
+    # if there is picture time stamp this is
+    # is a free format comment not a picture
+    # skip
+    if (is.na(df$pic_timestamp[i])){
+      return(rep(NA,9))
     }
     
-    # create folders based on the farmer's id
-    if (!dir.exists(user_thumb_path) ){
-      dir.create(user_thumb_path)  
+    # load image
+    img = raster::brick(local_image_location[i])
+    
+    # estimate an ROI (based upon the location of the horizon)
+    roi = try(estimate_roi(img = img, plot = FALSE))
+    
+    if(inherits(roi,"try-error")){
+      return(rep(NA,9))
     }
-    
-    # create folders based on the farmer's id
-    if (!dir.exists(site_user_img_path) ){
-      dir.create(site_user_img_path)  
-    }
-    
-    # and his different fields (if any)
-    if (!dir.exists(site_user_thumb_path) ){
-      dir.create(site_user_thumb_path)
-    }
-    
-    # create image location string
-    filename = sprintf("%s-%s-%s.jpg",userid,cropsite,epoch_date)
-    online_image_location = sprintf("%s/%s/%s/%s",server,userid,cropsite,filename)
-    local_image_location = sprintf("%s/%s",site_user_img_path,filename)
-    
-    # download the image data if no local copy exists
-    if (!file.exists(local_image_location)){
-      error = try(download.file(online_image_location, local_image_location, quiet = TRUE))
-      if (inherits(error,"try-error")){
-        next # skip image if download fails
-      }
-    }
-    
-    # estimate an ROI
-    roi = estimate_roi(local_image_location)$roi
-    
+
     # calculate the gcc / grvi
-    greenness_values = calculate_gcc(local_image_location,
+    greenness_values = calculate_gcc(img = img,
                                      roi = roi)
     
     # calculate the glcm
-    greenness_values = calculate_glcm(local_image_location,
-                                     roi = roi)
+    glcm_values = calculate_glcm(img = img,
+                                 roi = roi)
+    
+    # calculate the sobel data
+    sobel_values = calculate_sobel(img = img,
+                                   roi = roi)
     
     # visualize the regions of interest and horizon
-    # in an image thumbnail for review
-    
-    # read in the data, and flip image if necessary
-    img = raster::brick(local_image_location)
-    if (ncol(img) < nrow(img)){
-      img = t( raster::flip(img,1) )
+    # in an image thumbnail for review, requires
+    # flag
+    if (thumbnails){
+      thumbnail_location = sprintf("%s/%s",site_user_thumb_path[i],filename[i])
+      jpeg(thumbnail_location, 374, 280, bg = "black")
+      raster::plotRGB(img)
+      lines(1:ncol(img),
+            roi$horizon,
+            lwd = 2,
+            col='red')
+      lines(roi$roi,
+            lwd = 2,
+            lty = 2,
+            col = 'yellow')
+      dev.off()
     }
     
-    # plot and save to file
-    thumbnail_location = sprintf("%s/%s",site_user_thumb_path,filename)
-    jpeg(thumbnail_location, 374, 280)
-    raster::plotRGB(img)
-    lines(1:ncol(img),
-          values$horizon,
-          lwd = 2,
-          col='red')
-    lines(values$roi,
-          lwd = 2,
-          lty = 2,
-          col = 'yellow')
-    dev.off()
-    
-    # stuff things back into the original dataframe
-    # long objects are stored as comma separated strings
-    df$gcc[i] = greenness_values$gcc
-    df$grvi[i] = greenness_values$grvi
-    df$roi[i] = paste(as.vector(greenness_values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
-    
-    # write new data to file
-    jsonlite::write_json(df,"cropmonitor.json")
-    
-  }
+    # the original ROI polygon descriptor
+    #roi = paste(as.vector(greenness_values$roi@polygons[[1]]@Polygons[[1]]@coords),collapse = ',')
 
+    # garbage collection cleanup
+    raster::removeTmpFiles()
+
+    # return values
+    return(c(greenness_values$gcc,greenness_values$grvi,glcm_values$glcm,sobel_values$sobel))
+  }
+  
+  # output matrix
+  output = matrix(NA, nrow(df), 9)
+  output[files_to_process[1:5],] = crop_index_details
+  names(output) = c("gcc_90",
+                    "grvi",
+                    "glcm_variance",
+                    "glcm_homogeneity",
+                    "glcm_contrast",
+                    "glcm_dissimilarity",
+                    "glcm_entropy",
+                    "glcm_second_moment",
+                    "sobel")
+  
+  # write to file after combining with the
+  # original database
+  df = cbind(df,output)
+  
   # write new data to file
   jsonlite::write_json(df,"cropmonitor.json")
   
-  # close progress bar
-  utils::close(pb)
+  # stop cluster
+  stopCluster(cl)
   
+  # close progress bar
+  close(pb)
 }

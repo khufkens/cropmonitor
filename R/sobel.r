@@ -13,7 +13,8 @@
 #'                                                                           
 #' @references
 #' Sobel, I., & G. Feldman, (1969) A 3x3 Isotropic Gradient Operator for
-#' Image Processing, presented at the Stanford Artificial Intelligence Project (SAIL). 
+#' Image Processing, presented at the Stanford Artificial 
+#' Intelligence Project (SAIL). 
 #' 
 #' @examples
 #' 
