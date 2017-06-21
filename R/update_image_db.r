@@ -9,7 +9,7 @@
 #' @keywords gcc calculation, QA/GC
 #' @export
 
-update_local_image_db = function(database = NULL,
+update_image_db = function(database = NULL,
                                  path = "~/cropmonitor",
                                  server = "http://cdn.wheatcam.ifpri.org/ReportImages"){
 

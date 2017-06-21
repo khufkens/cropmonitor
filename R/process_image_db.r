@@ -12,12 +12,12 @@
 #' @examples
 #' # no examples yet
 
-process_cropmonitor_db = 
+process_image_db = 
   function(database = NULL,
            path = "~/cropmonitor/",
            server = "http://cdn.wheatcam.ifpri.org/ReportImages",
            thumbnails = FALSE,
-           force = FALSE,
+           force = TRUE,
            ncores = 6){
   
   # for consistency with list.files() use tilde
@@ -92,7 +92,7 @@ process_cropmonitor_db =
   
   # compare current local database with the one provided
   # as a parameter
-  if (file.exists("cropmonitor.json")){
+  if (file.exists("cropmonitor.json") & force == FALSE ){
     
     # read local database
     local_database = jsonlite::fromJSON("cropmonitor.json")
@@ -125,8 +125,9 @@ process_cropmonitor_db =
   # now loop over all new images in the database and fill in the
   # missing values. Report progress
   cat("Processing database entries\n")
-  cat(sprintf("will finish in ~ %s days on a single core macbook pro.\n",
-              round((length(files_to_process) * 13) / (3600 * 24 * ncores),2)))
+  cat(sprintf("will finish in ~ %s days on a %s core machine.\n",
+              round((length(files_to_process) * 13) / (3600 * 24 * ncores),2),
+              ncores))
 
   # set the number of cores
   cl = makeCluster(ncores)
@@ -134,15 +135,18 @@ process_cropmonitor_db =
   
   # set progress bar
   pb = txtProgressBar(max = length(files_to_process),
-                       style=3)
+                       style = 3)
   progress = function(n) setTxtProgressBar(pb, n)
   opts = list(progress = progress)
   
   # use lapply instead of loop
-  crop_index_details = foreach(i = files_to_process[1:5],
+  crop_index_details = foreach(j = 1:length(files_to_process),
                                .combine = rbind,
-                               .options.snow = opts) %do% {
+                               .options.snow = opts) %dopar% {
     
+    # grab location of the file to process
+    i = files_to_process[j]
+                                 
     # if there is picture time stamp this is
     # is a free format comment not a picture
     # skip
@@ -154,7 +158,7 @@ process_cropmonitor_db =
     img = raster::brick(local_image_location[i])
     
     # estimate an ROI (based upon the location of the horizon)
-    roi = try(estimate_roi(img = img, plot = FALSE))
+    roi = try(estimate_roi(img = img, plot = FALSE), silent = TRUE)
     
     if(inherits(roi,"try-error")){
       return(rep(NA,9))
@@ -202,7 +206,7 @@ process_cropmonitor_db =
   
   # output matrix
   output = matrix(NA, nrow(df), 9)
-  output[files_to_process[1:5],] = crop_index_details
+  output[files_to_process,] = crop_index_details
   names(output) = c("gcc_90",
                     "grvi",
                     "glcm_variance",

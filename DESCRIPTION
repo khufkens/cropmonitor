@@ -1,12 +1,11 @@
 Package: cropmonitor
 Type: Package
 Title: IFPRI cellphone based crop monitoring application
-Version: 0.1
+Version: 1.0
 Author: Koen Hufkens
 Maintainer: Koen Hufkens <koen.hufkens@gmail.com>
 Description: The packages allows for easy processing of data collected 
   within a first field trial concerning cellphone based crop monitoring.
-  Written with help from Bob Dylan.
 Depends:
     R (>= 3.2.5),
     shiny (>= 0.14.1),
@@ -22,7 +21,8 @@ Depends:
     sp (>= 1.2),
     glcm (>= 1.6.1),
     DT (>= 0.2),
-    readxl (>= 0.1.1)
+    readxl (>= 0.1.1),
+    doSNOW (>= 1.0.14)
 License: AGPL-v3
 Encoding: UTF-8
 LazyData: true
