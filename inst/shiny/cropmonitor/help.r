@@ -3,19 +3,8 @@ tags$html(
     tags$title('About page')
   ),
   tags$body(
-    tags$h2('The AmerifluxR package'),
-    tags$p('The AmerifluxR package provides functions to easily query and visualize Level2 processed Ameriflux data from the Ameriflux servers. Data will be downloaded if available (gap filled or raw). If no data is available, please contact the site PI if the site is listed. Presence in the table does not constitute available open access data or complete data files. Additional tools will be developed over time to increase the package functionality, in particular viewing of Level3 data.'),
-    tags$p('I appreciate any help in the development of the package, especially development on Windows machines is difficult due to limit access to such hardware.'),
-    tags$h3('FAQ / remarks'),
-    tags$ul(
-      tags$li('The sites can be geographically constrained by clicking top left / bottom right on the map'),
-      tags$li('The map might load slowly as it pulls in metadata from the Ameriflux server\'s javascript based site table (no API?). Subsequent loads will be faster as the data is cached, but will be automatically refreshed yearly.'),
-      tags$li('All data is stored in a local "ameriflux_cache" folder in your home directory. You may delete this folder at any time (although it will be recreated when starting the gui).'),
-      tags$li('Mark the "refresh" tick box to re-download all data and refresh the data stored in your cache directory.'),
-      tags$li('The NEE phenology plot type displays start and end of season as well as the growing season length (SOS/EOS/GSL) based on source-sink transition dates.'),
-      tags$li('The site years listed on top of the map are estimates using back filled dates. If the final date is not provided, continuous measurements until present are assumed (creating a bias towards high estimates)'),
-      tags$li('For continued development consider buying me coffee by tipping my tip jar on my',tags$a(href="http://www.khufkens.com/downloads/", "software page",target="_blank"),'.'),
-      tags$li('... or cite / acknowledging the package.')
-    )
+    tags$h2('The IFPRI Crop Monitor package'),
+    tags$p('This R package provides functions to easily process the Picture Based Insurance data as collected during a first field trial. Data was collected through a cellphone based platform. The package provides an easy way to process internally processed STATA files. The package takes this STATA files, downloads the necessary additional image data from a private IFPRI server and pre-processes it into a consistent format. By default downloaded data are stored in "cropmonitor" directory in the home directory of the workstaton processing the data. In there, the directory images holds downsampled image files of the originals, corrected for orientation errors. In addition thumbnails are stored in the thumbs directory. Data is organized using the structure as used in the original database associated with the cellphone application sourcing the data.'),
+    tags$p('To generate this initial database of source data use the update_image_db() function associated with this package. Downloading and especially orienting the images correctly might take a significant time (e.g. 10K images will take 2 days to process on a moderately fast system). Once this initial step is executed incremental changes can be made, taking up less time. To update the final database which is associated with this GUI run the process_image_db() function in an R session. This will calculate greenness vegetation indices based upon the downloaded images, as well as texture metrics and edge detection values for a given region of interest (ROI) as automatically defined through a horizon finding algorithm.')
   )
 )

@@ -13,13 +13,16 @@
 cropmonitor = function(path = "~/cropmonitor"){
   
   if ( !dir.exists(path) ){
-    stop("no data has been processed yet!\n Please update the database first.")
+    stop("no data has been processed yet!\n 
+         Please update the image database first using update_image_db()")
   }
 
-  if ( !file.exists(sprintf("%s/cropmonitor.json",path)) ) {
-    stop("no local database exists, please calculate the data first!")
+  if ( !file.exists(sprintf("%s/cropmonitor.json",path)) ){
+    stop("no local database exists, please calculate the data first using\n
+         process_image_db()")
   }
   
+  # start application
   appDir = sprintf("%s/shiny/cropmonitor",path.package("cropmonitor"))
   shiny::runApp(appDir, display.mode = "normal",launch.browser=TRUE)
 }

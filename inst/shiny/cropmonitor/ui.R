@@ -6,7 +6,6 @@ require(plotly ,quietly = TRUE)
 require(DT, quietly = TRUE)
 
 # source about page content
-about = source('about.r')
 help = source('help.r')
 
 # interface elements
@@ -15,9 +14,8 @@ header = dashboardHeader(title = "IFPRI Crop Monitor")
 sidebar = dashboardSidebar(
   includeCSS("custom.css"),
   sidebarMenu(
-    menuItem("Explore data", tabName = "explorer", icon = icon("bar-chart-o")),
-    menuItem("Help", tabName = "help", icon = icon("info-circle")),
-    menuItem("code on GitHub", icon = icon("github"), href = "https://github.com/khufkens/cropmonitor")
+    menuItem("Explore Data", tabName = "explorer", icon = icon("bar-chart-o")),
+    menuItem("Help", tabName = "help", icon = icon("info-circle"))
   )
 )
 
@@ -74,12 +72,17 @@ body = dashboardBody(
                           )
                 )
         ),
-        tabPanel("Plot data", icon = icon("bar-chart-o"),
+        tabPanel("Plot Data", icon = icon("bar-chart-o"),
                  fluidRow(
                    column(4,
                           box(width = NULL,
                               selectInput("plot_type", "Plot Type",
-                                          c("Gcc"="gcc","GRVI"="grvi"),
+                                          c("Gcc"="gcc",
+                                            "GRVI"="grvi",
+                                            "sobel"="sobel",
+                                            "entropy"="entropy",
+                                            "homogeneity"="homogeneity"
+                                            ),
                                           width="100%"))),
                    column(8,
                           box(width = NULL,
@@ -101,11 +104,6 @@ body = dashboardBody(
                  )
         )
       )
-    ),
-    tabItem(
-      # the about page
-      tabName = "about",
-      tabPanel("About", box(width=NULL,about$value))
     ),
     tabItem(
       # the about page

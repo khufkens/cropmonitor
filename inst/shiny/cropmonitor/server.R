@@ -1,76 +1,54 @@
-# load required libraries
-require(shiny) # GUI components
-require(shinydashboard) # GUI components
-require(leaflet) # mapping utility
-require(plotly) # fancy ploty in shiny
-require(DT) # interactive tables for shiny
-require(data.table) # loads data far faster than read.table()
-
-# grab the OS info
-user = Sys.info()[6]
-machine = Sys.info()[4]
-
-# When on the machine of the developer, sideload the code locally
-# for quick reviewing of changes to the GUI
-if (machine == "squeeze" | user == "khufkens") {
-
-  # load all functions
-  files = list.files(
-    "/data/Dropbox/Research_Projects/IFPRI/code/cropmonitor/R",
-    "*.r",
-    full.names = TRUE
-  )
-  for (i in files) {
-    source(i)
-  }
-  path = "/data/Dropbox/Research_Projects/IFPRI/code/cropmonitor/inst/shiny/cropmonitor/"
-} else {
-  path = sprintf("%s/shiny/cropmonitor", path.package("cropmonitor"))
-}
+# server settings
 
 # finally read in the metadata if all checks are go
 # convert to data frame instead of data table for subsetting
 # will change to data table later == faster
-df = jsonlite::fromJSON("~/cropmonitor/cropmonitor.json")
+
+df = readRDS("~/cropmonitor/cropmonitor.rds")
 df = df[which(df$longitude > 70),]
 
-# read questionairs
+# read questionair data
 if (file.exists("~/cropmonitor/questionaire.xlsx")){
-  
   quest = readxl::read_excel("~/cropmonitor/questionaire.xlsx")
   quest = quest[,-(2:9)]
-  
-  # merge the data on the report id
   df = merge(df, quest, by = 'reportid', all.x = TRUE)
 }
 
 # generate strings for thumbs
-thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
-                 df$uniqueuserid,
-                 df$uniquecropsiteid,
-                 df$uniqueuserid,
-                 df$uniquecropsiteid,
+df$thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
+                 df$old_uniqueuserid,
+                 df$old_uniquecropsiteid,
+                 df$old_uniqueuserid,
+                 df$old_uniquecropsiteid,
                  df$pic_timestamp)
 
+# create unique field vector
+df$userfield = paste(df$uniqueuserid,df$uniquecropsiteid,sep = "-")
+
 # summarize variables (ugly)
-latitude = as.vector(by(df$latitude, INDICES = df$uniquecropsiteid, mean))
-longitude = as.vector(by(df$longitude, INDICES = df$uniquecropsiteid, mean))
-field = as.vector(by(df$uniquecropsiteid,
-                     INDICES = df$uniquecropsiteid,
+latitude = as.vector(by(df$latitude,
+                        INDICES = df$userfield,
+                        function(x)x[1]))
+longitude = as.vector(by(df$longitude,
+                         INDICES = df$userfield,
+                         function(x)x[1]))
+
+field = as.vector(by(df$userfield,
+                     INDICES = df$userfield,
                      function(x) as.character(x[1])))
-user = as.vector(by(df$uniqueuserid, INDICES = df$uniquecropsiteid, mean))
-image_id = as.vector(by(thumbs,
-                        INDICES = df$uniquecropsiteid,
-                        function(x) as.character(x[1])))
+user = as.vector(by(df$uniqueuserid, INDICES = df$userfield, mean))
+image_id = as.vector(by(df$thumbs,
+                        INDICES = df$userfield,
+                        function(x){as.character(x[1])}))
 id = 1:length(image_id)
 
 # count the images
-image_count = table(df$uniquecropsiteid)
+image_count = table(df$userfield)
 image_count = data.frame(as.character(names(image_count)),as.numeric(image_count))
 colnames(image_count) = c('field','images')
 
 # group map data
-map_data = data.frame(user, field, latitude, longitude, id)
+map_data = data.frame(field, latitude, longitude)
 map_data = merge(map_data, image_count, by = 'field', all.x = TRUE)
 
 # start server routine
@@ -82,8 +60,8 @@ server = function(input, output, session) {
 
   getValueData = function(table) {
     
-    nr_farmers = length(unique(table$uniqueuserid))
-    nr_fields = length(unique(table$uniquecropsiteid))
+    nr_farmers = length(unique(table$old_uniqueuserid))
+    nr_fields = length(unique(table$old_uniquecropsiteid))
     
     output$nr_farmers = renderInfoBox({
       valueBox(nr_farmers,
@@ -98,7 +76,6 @@ server = function(input, output, session) {
                icon = icon("list"),
                color = "blue")
     })
-    
   }
   
   # fill site count etc fields
@@ -106,7 +83,7 @@ server = function(input, output, session) {
   
   # update the data table used to link to the fields
   output$table = DT::renderDataTable({
-    return(map_data[,-5])
+    return(map_data)
   },
   selection = "single",
   options = list(lengthMenu = list(c(5, 10), c('5', '10'))),
@@ -117,22 +94,20 @@ server = function(input, output, session) {
     map = leaflet(map_data) %>%
       addTiles(
         "http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}.jpg",
-        attribution = 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+        attribution = '',
         group = "World Imagery"
       ) %>%
-      addCircleMarkers(lat = ~latitude,
+      addMarkers(lat = ~latitude,
                        lng = ~longitude,
-                       layerId=~id,
-                       color = "yellow",
-                       radius = 6,
-                       stroke = FALSE,
-                       fillOpacity = 0.5) %>%
+                       layerId= ~id,
+                       clusterOptions = markerClusterOptions()
+                 ) %>%
       setView(lng = mean(map_data$longitude),
               lat = mean(map_data$latitude),
               zoom = 8)
   })
   
-  # udpate the data
+  # update the data to be plotted
   processData = function(myrow) {
     
     # if nothing is selected return NULL
@@ -143,9 +118,9 @@ server = function(input, output, session) {
     # grab the necessary parameters to download the site data
     # subset by field
     field = as.character(map_data$field[as.numeric(myrow)])
-    plot_data = df[which(df$uniquecropsiteid == field),]
-
-    if (nrow(plot_data) < 20){
+    plot_data = df[which(df$userfield == field),]
+    
+    if (nrow(plot_data) < 10){
       
       # return null if not enough values found
       return(NULL)
@@ -180,10 +155,23 @@ server = function(input, output, session) {
     }
   })
   
-  # preview in the time-series plotting area
-  output$preview = renderPlot({
-    if (length(input$table_row_last_clicked) != 0) {
-      r = raster::brick(image_id[input$table_row_last_clicked])
+  # plot preview from selection
+  output$preview <- renderPlot({
+    s <- event_data("plotly_click", source = "time_series_plot")
+    
+    # load data
+    plot_data = inputData()
+    
+    # pick a first preview at the beginning
+    # of the series
+    loc = ifelse(is.null(s),1,s$pointNumber)
+    
+    # grab url
+    url = plot_data$thumbs[loc]
+    url = ifelse(length(url),url,"empty")
+    
+    if ( file.exists(url) ) {
+      r = raster::brick(url)
       raster::plotRGB(r)
     } else {
       plot(0,0,
@@ -194,6 +182,17 @@ server = function(input, output, session) {
            bty = 'n',
            type = 'n')
       text(0,0,labels = "No Preview")
+    }
+  })
+  
+  # grab selection
+  output$selection <- renderPrint({
+    s <- event_data("plotly_click", source = "time_series_plot")
+    if (length(s) == 0) {
+      "Click on a cell in the heatmap to display a scatterplot"
+    } else {
+      cat("You selected: \n\n")
+      as.list(s)
     }
   })
   
@@ -244,16 +243,18 @@ server = function(input, output, session) {
       # sort things, database isn't ordered
       date = as.POSIXct(plot_data$datetime)
       
-      #date = plot_data$datetime
       if (input$plot_type == "gcc") {
         greenness = plot_data$gcc[order(date)]
-      } else {
+      } else if (input$plot_type == "grvi") {
         greenness = plot_data$grvi[order(date)]
+      } else if (input$plot_type == "sobel") {
+        greenness = plot_data$sobel[order(date)]
+      } else if (input$plot_type == "entropy") {
+        greenness = plot_data$glcm_entropy[order(date)]
+      } else if (input$plot_type == "homogeneity") {
+        greenness = plot_data$glcm_homogeneity[order(date)]
       }
-      
-      # sort stuff
-      date = date[order(date)]
-      
+
       # smooth the data using a loess fit
       fit = loess(greenness ~ as.numeric(date), span = 0.3)
       fit_greenness = predict(fit, as.numeric(date), se = TRUE)
@@ -263,13 +264,11 @@ server = function(input, output, session) {
       # if the questionaire data is there plot additional info
       if (any(grepl('q7',names(plot_data)))){
         
-        # damage dates
-        dam = which(!is.na(plot_data$q7) & grep("50",plot_data$q6))
+        # damage as in lodging
+        dam = which(plot_data$Lodg_winds == 1)
         
         # Irrigation dates
         irr = grep("Irrigation",plot_data$q10)
-        
-        print(plot_data$q10)
         
         # Weeding dates
         we = grep("Weeding",plot_data$q10)
@@ -283,6 +282,7 @@ server = function(input, output, session) {
           mode = "lines",
           type = 'scatter',
           line = list(width = 0),
+          source = "time_series_plot",
           showlegend = FALSE
         ) %>%
           add_trace(
@@ -339,7 +339,7 @@ server = function(input, output, session) {
             mode = "markers",
             marker = list(color = "#f03b20", symbol = "circle", size = 10),
             showlegend = TRUE,
-            name = "Reported Damage"
+            name = "Lodging"
           ) %>%
           layout(
             xaxis = list(title = ""),

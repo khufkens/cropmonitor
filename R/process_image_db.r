@@ -207,7 +207,7 @@ process_image_db =
   # output matrix
   output = matrix(NA, nrow(df), 9)
   output[files_to_process,] = crop_index_details
-  names(output) = c("gcc_90",
+  colnames(output) = c("gcc_90",
                     "grvi",
                     "glcm_variance",
                     "glcm_homogeneity",
@@ -219,10 +219,14 @@ process_image_db =
   
   # write to file after combining with the
   # original database
-  df = cbind(df,output)
+  df = data.frame(df,output)
   
   # write new data to file
-  jsonlite::write_json(df,"cropmonitor.json")
+  # use rds not json as json gets fucked up easily
+  # by additions in the ingested dta file, namely
+  # the use of {} returns nested list instead
+  # of data frames, which is a PITA
+  saveRDS(df,file = "cropmonitor.rds")
   
   # stop cluster
   stopCluster(cl)
