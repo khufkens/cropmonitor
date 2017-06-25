@@ -62,7 +62,7 @@ params:
     ylim(low = min(ci_down, na.rm = TRUE),
          high = max(gcc, na.rm = TRUE) + 0.03) +
       xlab("") +
-      ylab("Vegetation Greenness") +
+      ylab("Greenness") +
     geom_line() +
     geom_ribbon(aes(ymin=ci_down, ymax=ci_up), alpha=0.2) +
     geom_point(aes(date,gcc), na.rm=TRUE) +
@@ -72,7 +72,7 @@ params:
             na.rm=TRUE)  
     p = p + theme_economist() +
     scale_color_economist() +
-    ggtitle("Greenness time series")
+    ggtitle("Vegetation Greenness")
     plot(p)
 ```
 
