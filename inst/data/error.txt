@@ -1,3 +1,0 @@
-ERROR
-
-Please select a farmer to generate a farmer report.

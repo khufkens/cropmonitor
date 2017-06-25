@@ -5,7 +5,7 @@
 \title{Plot Gcc and GRVI values for all fields (sites), for quick
 non interactive review or reporting}
 \usage{
-plot_cropmonitor_sites(database = "~/cropmonitor/cropmonitor.json",
+plot_cropmonitor_sites(database = "~/cropmonitor/cropmonitor.rds",
   questionaire = "~/cropmonitor/questionaire.xlsx", span = 0.3,
   out_dir = "~/cropmonitor")
 }
@@ -19,10 +19,6 @@ plot_cropmonitor_sites(database = "~/cropmonitor/cropmonitor.json",
 \description{
 Plot Gcc and GRVI values for all fields (sites), for quick
 non interactive review or reporting
-}
-\examples{
-
-
 }
 \keyword{/}
 \keyword{QA/GC}

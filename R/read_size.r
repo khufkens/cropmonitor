@@ -8,7 +8,6 @@
 #' vs. the specified ncols.
 #' @keywords image preparation, image reading
 #' @export
-#' @examples
 
 read_size = function(img,
                      ncols = 640,

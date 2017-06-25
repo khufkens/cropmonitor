@@ -6,9 +6,6 @@
 #' @param out_dir: path where to store the output pdfs
 #' @keywords gcc / grvi calculation, QA/GC
 #' @export
-#' @examples
-#' 
-#' 
 
 plot_cropmonitor_sites = function( database = "~/cropmonitor/cropmonitor.rds",
                        questionaire = "~/cropmonitor/questionaire.xlsx",

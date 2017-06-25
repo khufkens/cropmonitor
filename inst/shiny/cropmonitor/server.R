@@ -1,9 +1,5 @@
 # server settings
 
-# finally read in the metadata if all checks are go
-# convert to data frame instead of data table for subsetting
-# will change to data table later == faster
-
 df = readRDS("~/cropmonitor/cropmonitor.rds")
 df = df[which(df$longitude > 70),]
 df = df[, -grep("questionnaireresult",names(df))]
@@ -157,14 +153,13 @@ server = function(input, output, session) {
   
   # plot preview from selection
   output$preview <- renderPlot({
-    s <- event_data("plotly_click",
+    s = event_data("plotly_click",
                     source = "time_series_plot")
     
     # pick a first preview at the beginning
     # of the series
     loc = ifelse(is.null(s),1,s$pointNumber)
   
-    print(loc)
     # load data
     plot_data = inputData()
     
@@ -194,7 +189,7 @@ server = function(input, output, session) {
   })
   
   # generate output report with some summary statistics
-  output$report <- downloadHandler(
+  output$report = downloadHandler(
     filename = function(){
       if (length(input$table_row_last_clicked)){
         
@@ -214,8 +209,8 @@ server = function(input, output, session) {
         # Copy the report file to a temporary directory before processing it, in
         # case we don't have write permissions to the current working dir (which
         # can happen when deployed).
-        tempReport <- file.path(tempdir(), "Report.Rmd")
-        template <- "~/cropmonitor/Report.Rmd"
+        tempReport = file.path(tempdir(), "Report.Rmd")
+        template = file.path(path.package("cropmonitor"),"extdata","Report.Rmd")
         
         # copy template
         file.copy(template,
@@ -233,7 +228,9 @@ server = function(input, output, session) {
                           params = params,
                           envir = new.env(parent = globalenv()))
       } else {
-        file.copy("~/cropmonitor/error.txt", file)
+        file.copy(file.path(path.package("cropmonitor"),
+                            "extdata",
+                            "error.txt"), file)
       }
     }
   )

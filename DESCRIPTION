@@ -12,7 +12,6 @@ Depends:
     shinydashboard (>= 0.5.3),
     leaflet (>= 1.0.1),
     plotly (>= 4.5.2),
-    jsonlite (>= 1.1),
     changepoint (>= 2.2.2),
     utils (>= 3.2.5),
     graphics (>= 3.2.5),
@@ -23,7 +22,8 @@ Depends:
     glcm (>= 1.6.1),
     DT (>= 0.2),
     readxl (>= 0.1.1),
-    doSNOW (>= 1.0.14)
+    doSNOW (>= 1.0.14),
+    ggthemes (>= 3.4.0)
 License: AGPL-v3
 Encoding: UTF-8
 LazyData: true
