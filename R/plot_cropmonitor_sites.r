@@ -10,7 +10,7 @@
 #' 
 #' 
 
-plot_cropmonitor_sites = function( database = "~/cropmonitor/cropmonitor.json",
+plot_cropmonitor_sites = function( database = "~/cropmonitor/cropmonitor.rds",
                        questionaire = "~/cropmonitor/questionaire.xlsx",
                        span = 0.3,
                        out_dir = "~/cropmonitor"){
@@ -23,8 +23,6 @@ plot_cropmonitor_sites = function( database = "~/cropmonitor/cropmonitor.json",
       return(NULL)
     }
   
-    print(df$q10)
-    
     # sort things, database isn't ordered  
     grvi = df$grvi[order(df$date)]
     gcc = df$gcc[order(df$date)]

@@ -6,6 +6,10 @@
 
 df = readRDS("~/cropmonitor/cropmonitor.rds")
 df = df[which(df$longitude > 70),]
+df = df[, -grep("questionnaireresult",names(df))]
+
+# strip the non unicode data from dataset by dropping the question
+# column
 
 # read questionair data
 if (file.exists("~/cropmonitor/questionaire.xlsx")){
@@ -120,17 +124,13 @@ server = function(input, output, session) {
     field = as.character(map_data$field[as.numeric(myrow)])
     plot_data = df[which(df$userfield == field),]
     
-    if (nrow(plot_data) < 10){
-      
-      # return null if not enough values found
-      return(NULL)
-      
-    } else {
+    # sort data by date, as not do this elsewhere
+    plot_date = plot_data[order(plot_data$datetime),]
     
-      # return this structure
-      return(plot_data)
-      
-    }
+    # return null if not enough values found
+    ifelse(nrow(plot_data) < 10,
+           return(NULL),
+           return(plot_data))
   }
 
   # observe the state of the table, if changed update the data
@@ -157,22 +157,30 @@ server = function(input, output, session) {
   
   # plot preview from selection
   output$preview <- renderPlot({
-    s <- event_data("plotly_click", source = "time_series_plot")
-    
-    # load data
-    plot_data = inputData()
+    s <- event_data("plotly_click",
+                    source = "time_series_plot")
     
     # pick a first preview at the beginning
     # of the series
     loc = ifelse(is.null(s),1,s$pointNumber)
+  
+    print(loc)
+    # load data
+    plot_data = inputData()
     
-    # grab url
-    url = plot_data$thumbs[loc]
-    url = ifelse(length(url),url,"empty")
+    # check the data input
+    if (is.null(plot_data)){
+     url = "empty" 
+    } else {
+      url = plot_data$thumbs[loc]  
+    }
     
+    # check if the thumbnail exists
     if ( file.exists(url) ) {
+      # plot the data
       r = raster::brick(url)
       raster::plotRGB(r)
+      
     } else {
       plot(0,0,
            xlab = '',
@@ -185,16 +193,50 @@ server = function(input, output, session) {
     }
   })
   
-  # grab selection
-  output$selection <- renderPrint({
-    s <- event_data("plotly_click", source = "time_series_plot")
-    if (length(s) == 0) {
-      "Click on a cell in the heatmap to display a scatterplot"
-    } else {
-      cat("You selected: \n\n")
-      as.list(s)
+  # generate output report with some summary statistics
+  output$report <- downloadHandler(
+    filename = function(){
+      if (length(input$table_row_last_clicked)){
+        
+        # grab userid
+        df = inputData()
+        userid = df$uniqueuserid[1]
+          
+        # pdf filename based on farmer id
+        sprintf("farmer_%s.pdf",userid)
+      } else {
+        "error.txt"
+      }
+    },
+    content = function(file) {
+      if (length(input$table_row_last_clicked)) {
+      
+        # Copy the report file to a temporary directory before processing it, in
+        # case we don't have write permissions to the current working dir (which
+        # can happen when deployed).
+        tempReport <- file.path(tempdir(), "Report.Rmd")
+        template <- "~/cropmonitor/Report.Rmd"
+        
+        # copy template
+        file.copy(template,
+                  tempReport,
+                  overwrite = TRUE)
+
+        # grab data
+        params = list(n = inputData())
+        
+        # Knit the document, passing in the `params` list, and eval it in a
+        # child of the global environment (this isolates the code in the document
+        # from the code in this app).
+        rmarkdown::render(tempReport,
+                          output_file = file,
+                          params = params,
+                          envir = new.env(parent = globalenv()))
+      } else {
+        file.copy("~/cropmonitor/error.txt", file)
+      }
     }
-  })
+  )
   
   # plot the data / MESSY CLEAN UP!!!
   output$time_series_plot = renderPlotly({
@@ -241,23 +283,28 @@ server = function(input, output, session) {
     } else{
       
       # sort things, database isn't ordered
-      date = as.POSIXct(plot_data$datetime)
+      date = plot_data$datetime
       
       if (input$plot_type == "gcc") {
-        greenness = plot_data$gcc[order(date)]
+        greenness = plot_data$gcc
       } else if (input$plot_type == "grvi") {
-        greenness = plot_data$grvi[order(date)]
+        greenness = plot_data$grvi
       } else if (input$plot_type == "sobel") {
-        greenness = plot_data$sobel[order(date)]
+        greenness = plot_data$sobel
       } else if (input$plot_type == "entropy") {
-        greenness = plot_data$glcm_entropy[order(date)]
+        greenness = plot_data$glcm_entropy
       } else if (input$plot_type == "homogeneity") {
-        greenness = plot_data$glcm_homogeneity[order(date)]
+        greenness = plot_data$glcm_homogeneity
       }
-
+      
+      # create full date range vector
+      full_date = seq(min(date,na.rm = TRUE),
+                      max(date,na.rm = TRUE),
+                      'days')
+  
       # smooth the data using a loess fit
       fit = loess(greenness ~ as.numeric(date), span = 0.3)
-      fit_greenness = predict(fit, as.numeric(date), se = TRUE)
+      fit_greenness = predict(fit, as.numeric(full_date), se = TRUE)
       greenness_ci = fit_greenness$se * 1.96
       greenness_smooth = fit_greenness$fit
       
@@ -277,7 +324,7 @@ server = function(input, output, session) {
       
       # check the plotting type
         p = plot_ly(
-          x = date,
+          x = full_date,
           y = greenness_smooth,
           mode = "lines",
           type = 'scatter',
@@ -286,7 +333,7 @@ server = function(input, output, session) {
           showlegend = FALSE
         ) %>%
           add_trace(
-            x = date,
+            x = full_date,
             y = greenness_smooth - greenness_ci,
             mode = "lines",
             type = "scatter",
@@ -310,6 +357,7 @@ server = function(input, output, session) {
             showlegend = TRUE
           ) %>%
           add_trace(
+            x = date,
             y = greenness,
             mode = "markers",
             type = "scatter",
@@ -318,7 +366,7 @@ server = function(input, output, session) {
             showlegend = TRUE
           ) %>%
           add_trace(
-            x = date[irr],
+            x = full_date[irr],
             y = greenness_smooth[irr],
             mode = "markers",
             marker = list(color = "#3182bd", symbol = "circle", size = 10),
@@ -326,7 +374,7 @@ server = function(input, output, session) {
             name = "Irrigation"
           ) %>%
           add_trace(
-            x = date[we],
+            x = full_date[we],
             y = greenness_smooth[we] + 0.01,
             mode = "markers",
             marker = list(color = "#a1d99b", symbol = "circle", size = 10),
@@ -334,7 +382,7 @@ server = function(input, output, session) {
             name = "Weeding"
           ) %>%
           add_trace(
-            x = date[dam],
+            x = full_date[dam],
             y = greenness_smooth[dam] - 0.01,
             mode = "markers",
             marker = list(color = "#f03b20", symbol = "circle", size = 10),

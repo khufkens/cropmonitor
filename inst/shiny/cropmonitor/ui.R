@@ -1,15 +1,7 @@
-# load libraries
-require(shiny, quietly = TRUE)
-require(shinydashboard, quietly = TRUE)
-require(leaflet, quietly = TRUE)
-require(plotly ,quietly = TRUE)
-require(DT, quietly = TRUE)
-
 # source about page content
 help = source('help.r')
 
 # interface elements
-
 header = dashboardHeader(title = "IFPRI Crop Monitor")
 sidebar = dashboardSidebar(
   includeCSS("custom.css"),
@@ -83,7 +75,9 @@ body = dashboardBody(
                                             "entropy"="entropy",
                                             "homogeneity"="homogeneity"
                                             ),
-                                          width="100%"))),
+                                          width="100%"),
+                              downloadButton("report",
+                                             "Generate farmer report"))),
                    column(8,
                           box(width = NULL,
                               DT::dataTableOutput("table")
