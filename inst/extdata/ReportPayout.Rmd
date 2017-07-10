@@ -1,0 +1,132 @@
+---
+title: "Farmer's report"
+subtitle: "[IFPRI Picture Based Insurance]"
+output: pdf_document
+params:
+  n: NA
+  stats: NA
+---
+
+\begin{center}
+  Report for farmer: \# `r params$n$uniqueuserid[1]`, 
+  field: \# `r params$n$uniquecropsiteid[1]`,
+  max damage: `r params$stats[2]` \%,
+  PBI payout: `r params$stats[3]`,
+  loss category: `r params$stats[4]`,
+  PBI reason: `r params$stats[5]`
+\end{center}
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width = 9, fig.height = 4, fig.align="center"}
+  plot_thumbs = function(df = params$n){
+    label = c("a","b","c","d","e")
+    loc = c(round(seq(1,nrow(df),nrow(df)/4)),nrow(df))
+    par(mfrow=c(1,5),
+        oma = c(5,0,0,0))
+    for (i in 1:5){
+      if (file.exists(df$thumbs[loc[i]])){
+        r = raster::brick(df$thumbs[loc[i]])
+        raster::plotRGB(r)
+        text(350,250,label[i], cex = 1.5)
+      }
+    }
+  }
+  if (nrow(params$n) > 10){
+    plot_thumbs()
+  }
+```
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width = 9, fig.height = 4, fig.align="center"}
+  
+    library(ggplot2)
+    library(ggthemes)
+
+  if (nrow(params$n) > 10){
+    # set values
+    df = params$n
+    span = 0.8
+  
+    # add labels
+    label = c("a","b","c","d","e")
+    loc = c(round(seq(1,nrow(df),nrow(df)/4)),nrow(df))
+    df$label[loc] = label
+    labels = df$label
+    
+    # sort things, database isn't ordered  
+    gcc = df$gcc_90
+    date = df$datetime
+    thumbs = df$thumbs
+    full_date = seq(min(date,na.rm = TRUE),
+                    max(date,na.rm = TRUE),
+                    'days')
+
+    # smooth the data using a loess fit
+    fit = loess(gcc ~ as.numeric(date), span = 0.3)
+    fit_gcc = predict(fit, as.numeric(date), se = TRUE)
+    gcc_smooth = fit_gcc$fit
+    ci_up = gcc_smooth + fit_gcc$se * 1.96
+    ci_down = gcc_smooth - fit_gcc$se * 1.96
+    df = data.frame(date,gcc_smooth,ci_up,ci_down, gcc, labels)
+    
+    p = ggplot(df, aes(date,gcc_smooth)) + 
+    ylim(low = min(ci_down, na.rm = TRUE),
+         high = max(gcc, na.rm = TRUE) + 0.03) +
+      xlab("") +
+      ylab("Greenness") +
+    geom_line() +
+    geom_ribbon(aes(ymin=ci_down, ymax=ci_up), alpha=0.2) +
+    geom_point(aes(date,gcc), na.rm=TRUE) +
+    geom_text(aes(date,max(gcc, na.rm = TRUE), label = labels, vjust = -0.5),
+            color = "black",
+            size = 5,
+            na.rm=TRUE)  
+    p = p + theme_economist() +
+    scale_color_economist() +
+    ggtitle("Vegetation Greenness")
+    plot(p)
+  }
+```
+
+```{r echo = FALSE, message = FALSE, warnings = FALSE, fig.width = 9, fig.height = 4, fig.align="center"}
+  
+    library(ggplot2)
+    library(ggthemes)
+
+  if (nrow(params$n) > 10){
+    
+    # set values
+    df = params$n
+    span = 0.8
+
+    # sort things, database isn't ordered  
+    gcc = df$sobel
+    date = df$datetime
+    thumbs = df$thumbs
+    full_date = seq(min(date,na.rm = TRUE),
+                    max(date,na.rm = TRUE),
+                    'days')
+
+    # smooth the data using a loess fit
+    fit = loess(gcc ~ as.numeric(date), span = 0.3)
+    fit_gcc = predict(fit, as.numeric(date), se = TRUE)
+    gcc_smooth = fit_gcc$fit
+    ci_up = gcc_smooth + fit_gcc$se * 1.96
+    ci_down = gcc_smooth - fit_gcc$se * 1.96
+    df = data.frame(date,gcc_smooth,ci_up,ci_down, gcc, labels)
+    
+    p = ggplot(df, aes(date,gcc_smooth)) + 
+    ylim(low = min(ci_down, na.rm = TRUE),
+         high = max(gcc, na.rm = TRUE) + 0.03) +
+      xlab("") +
+      ylab("Texture metric") +
+    geom_line() +
+    geom_ribbon(aes(ymin=ci_down, ymax=ci_up), alpha=0.2) +
+    geom_point(aes(date,gcc), na.rm=TRUE)
+    
+    p = p + theme_economist() +
+    scale_color_economist() +
+    ggtitle("Vegetation Texture")
+    plot(p)
+  }
+```
+
+This is a summary overview of the pictures taken during the growing season of `r sprintf("%s - %s",min(format(df$date, "%Y"),na.rm = TRUE), max(format(df$date, "%Y"), na.rm = TRUE))`.
