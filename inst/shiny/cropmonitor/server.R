@@ -36,6 +36,7 @@ longitude = as.vector(by(df$longitude,
 field = as.vector(by(df$userfield,
                      INDICES = df$userfield,
                      function(x) as.character(x[1])))
+
 user = as.vector(by(df$uniqueuserid, INDICES = df$userfield, mean))
 image_id = as.vector(by(df$thumbs,
                         INDICES = df$userfield,

@@ -1,3 +1,17 @@
+#' Estimates the area under the curve (auc)
+#' for a smoothed PBI time series. Data are
+#' normalized to allow for comparisons of rate
+#' of change.
+#' 
+#' @param df: cropmonitor data frame / database file
+#' @param span: smoothing factor for loess fitting
+#' @keywords time series, index
+#' @export
+#' @examples
+#' # no examples yet
+
+
+
 auc = function(df, span = 0.3){
   
   # check length

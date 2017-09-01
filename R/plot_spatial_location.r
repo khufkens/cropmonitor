@@ -27,17 +27,18 @@
 #' 
 #' }
 
-library(dplyr)
-library(ggplot2)
-library(gridExtra)
-
 plot_spatial_location = function(df = df,
                                  userfield = NULL,
                                  path = "~"){
   
+  library(gridExtra)
+  
   if(is.null(userfield) || !is.character(userfield) ){
     stop("Please provide a userfield as a character string!")
   }
+  
+  # create unique field vector
+  df$userfield = paste(df$uniqueuserid,df$uniquecropsiteid,sep = "-")
   
   # subset the original data in the function
   df = df[which(df$userfield == userfield),]
@@ -50,6 +51,10 @@ plot_spatial_location = function(df = df,
                       df$old_uniquecropsiteid,
                       df$pic_timestamp)
   
+  # grab median location
+  lon = median(as.numeric(df$longitude), na.rm = TRUE)
+  lat = median(as.numeric(df$latitude), na.rm = TRUE)
+  
   # check if files exist on disk
   df$thumbs_exist = unlist(lapply(df$thumbs, file.exists))
   
@@ -57,8 +62,8 @@ plot_spatial_location = function(df = df,
   thumbnail = df$thumbs[which(df$thumbs_exist & !is.na(df$thumbs))][1]
   
   # download google maps data
-  mymap = try(ggmap::get_map(location = c(lon = as.numeric(df$longitude[1]),
-                                      lat = as.numeric(df$latitude[1])),
+  mymap = try(ggmap::get_map(location = c(lon = lon,
+                                      lat = lat),
                          color = "color",
                          source = "google",
                          maptype = "satellite",
@@ -69,8 +74,8 @@ plot_spatial_location = function(df = df,
   }
   
   # set point location
-  point_loc = data.frame(lon = as.numeric(df$longitude[1]),
-                         lat = as.numeric(df$latitude[1]))
+  point_loc = data.frame(lon = lon,
+                         lat = lat)
   
   # plot the google maps data
   p = ggmap::ggmap(mymap,
@@ -104,5 +109,3 @@ plot_spatial_location = function(df = df,
     grid.arrange(p,pp, ncol = 2)
   dev.off()
 }
-
-plot_spatial_location(df, "430720-1")

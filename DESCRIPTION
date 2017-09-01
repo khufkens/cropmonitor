@@ -24,7 +24,8 @@ Depends:
     readxl (>= 0.1.1),
     doSNOW (>= 1.0.14),
     ggthemes (>= 3.4.0),
-    knitr (>= 1.16)
+    knitr (>= 1.16),
+    gridExtra (>= 2.2.1)
 License: AGPL-v3
 Encoding: UTF-8
 LazyData: true
