@@ -82,25 +82,137 @@ gee_subset = function(product,
   return(df)
 }
 
-cat("Download Tier 1 Landsat VI data \n")
+# cat("Download Tier 1 Landsat VI data \n")
+# pb = txtProgressBar(min = 1, max = l, style = 3)
+# # loop over all data and download the time series
+# #for (i in 1:length(field)){
+# tier1 = lapply(1:l, function(i){
+# 
+#   # set progress
+#   setTxtProgressBar(pb, i)
+#   
+#   # set product parameters, such as
+#   # product name, band(s) to query, start and end date of the range
+#   # and the lcoation
+#   df = gee_subset(product = "LANDSAT/LC08/C01/T1",
+#                   band = "B2 B4 B5 BQA",
+#                   start_date = start_date,
+#                   end_date = end_date,
+#                   latitude = df$latitude[i],
+#                   longitude = df$longitude[i],
+#                   scale = 30)
+#   
+#   # return data
+#   return(df)
+# })
+# close(pb)
+# 
+# # set names of series
+# names(tier1) = df$userfield
+# 
+# cat("Download Tier 1 Landsat BAI data \n")
+# pb = txtProgressBar(min = 1, max = l, style = 3)
+# # loop over all data and download the time series
+# #for (i in 1:length(field)){
+# BAI = lapply(1:l, function(i){
+#   
+#   # set progress
+#   setTxtProgressBar(pb, i)
+#   
+#   # set product parameters, such as
+#   # product name, band(s) to query, start and end date of the range
+#   # and the lcoation
+#   df = gee_subset(product = "LANDSAT/LC8_L1T_8DAY_BAI",
+#                   band = "BAI",
+#                   start_date = start_date,
+#                   end_date = end_date,
+#                   latitude = df$latitude[i],
+#                   longitude = df$longitude[i],
+#                   scale = 30)
+#   
+#   # return data
+#   return(df)
+# })
+# close(pb)
+# 
+# # set names of series
+# names(BAI) = df$userfield
+
+# cat("Download Tier 1 Landsat EVI data \n")
+# pb = txtProgressBar(min = 1, max = l, style = 3)
+# # loop over all data and download the time series
+# #for (i in 1:length(field)){
+# tier1evi = lapply(1:l, function(i){
+#   
+#   # set progress
+#   setTxtProgressBar(pb, i)
+#   
+#   # set product parameters, such as
+#   # product name, band(s) to query, start and end date of the range
+#   # and the lcoation
+#   df = gee_subset(product = "LANDSAT/LC8_L1T_8DAY_EVI",
+#                   band = "EVI",
+#                   start_date = start_date,
+#                   end_date = end_date,
+#                   latitude = df$latitude[i],
+#                   longitude = df$longitude[i],
+#                   scale = 30)
+#   
+#   # return data
+#   return(df)
+# })
+# close(pb)
+# 
+# # set names of series
+# names(tier1evi) = df$userfield
+# 
+# cat("Download Tier 1 Landsat NDVI data \n")
+# pb = txtProgressBar(min = 1, max = l, style = 3)
+# # loop over all data and download the time series
+# #for (i in 1:length(field)){
+# tier1ndvi = lapply(1:l, function(i){
+#   
+#   # set progress
+#   setTxtProgressBar(pb, i)
+#   
+#   # set product parameters, such as
+#   # product name, band(s) to query, start and end date of the range
+#   # and the lcoation
+#   df = gee_subset(product = "LANDSAT/LC8_L1T_8DAY_NDVI",
+#                   band = "NDVI",
+#                   start_date = start_date,
+#                   end_date = end_date,
+#                   latitude = df$latitude[i],
+#                   longitude = df$longitude[i],
+#                   scale = 30)
+#   
+#   # return data
+#   return(df)
+# })
+# close(pb)
+# 
+# # set names of series
+# names(tier1ndvi) = df$userfield
+
+cat("Download Tier 1 MODIS reflectance data \n")
 pb = txtProgressBar(min = 1, max = l, style = 3)
 # loop over all data and download the time series
 #for (i in 1:length(field)){
-tier1 = lapply(1:l, function(i){
-
+modis = lapply(1:l, function(i){
+  
   # set progress
   setTxtProgressBar(pb, i)
   
   # set product parameters, such as
   # product name, band(s) to query, start and end date of the range
   # and the lcoation
-  df = gee_subset(product = "LANDSAT/LC08/C01/T1",
-                  band = "B2 B4 B5 BQA",
+  df = gee_subset(product = "MODIS/MCD43A4",
+                  band = "Nadir_Reflectance_Band1 Nadir_Reflectance_Band2 Nadir_Reflectance_Band3",
                   start_date = start_date,
                   end_date = end_date,
                   latitude = df$latitude[i],
                   longitude = df$longitude[i],
-                  scale = 30)
+                  scale = 500)
   
   # return data
   return(df)
@@ -108,14 +220,13 @@ tier1 = lapply(1:l, function(i){
 close(pb)
 
 # set names of series
-names(tier1) = df$userfield
+names(modis) = df$userfield
 
-
-cat("Download Tier 1 Landsat BAI data \n")
+cat("Download Tier 1 MODIS reflectance data \n")
 pb = txtProgressBar(min = 1, max = l, style = 3)
 # loop over all data and download the time series
 #for (i in 1:length(field)){
-BAI = lapply(1:l, function(i){
+modis_qa = lapply(1:l, function(i){
   
   # set progress
   setTxtProgressBar(pb, i)
@@ -123,13 +234,13 @@ BAI = lapply(1:l, function(i){
   # set product parameters, such as
   # product name, band(s) to query, start and end date of the range
   # and the lcoation
-  df = gee_subset(product = "LANDSAT/LC8_L1T_8DAY_BAI",
-                  band = "BAI",
+  df = gee_subset(product = "MODIS/MCD43A2",
+                  band = "BRDF_Albedo_Quality",
                   start_date = start_date,
                   end_date = end_date,
                   latitude = df$latitude[i],
                   longitude = df$longitude[i],
-                  scale = 30)
+                  scale = 500)
   
   # return data
   return(df)
@@ -137,8 +248,15 @@ BAI = lapply(1:l, function(i){
 close(pb)
 
 # set names of series
-names(BAI) = df$userfield
+names(modis_qa) = df$userfield
 
-# save data to file
-saveRDS(tier1,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_LC8_T1_data.rds")
-saveRDS(BAI,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_LC8_L1T_BAI_data.rds")
+
+# save Landsat data to file
+#saveRDS(tier1,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_LC8_T1_data.rds")
+#saveRDS(tier1evi,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_LC8_T1_evi_data.rds")
+#saveRDS(tier1ndvi,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_LC8_T1_ndvi_data.rds")
+#saveRDS(BAI,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_LC8_L1T_BAI_data.rds")
+
+# save MODIS data
+saveRDS(modis,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_modis_reflectance_data.rds")
+saveRDS(modis_qa,"/data/Dropbox/Research_Projects/IFPRI/data/landsat/landsat_modis_reflectance_qa_data.rds")
