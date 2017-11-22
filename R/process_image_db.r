@@ -1,11 +1,11 @@
 #' Batch process all data in the IFPRI database using the
 #' automatic ROI detection methodology
 #'
-#' @param database: STATA file as provided by IFPRI
-#' @param path: path of the IFPRI database images to process
-#' @param plot: TRUE / FALSE (output summary plots?)
-#' @param force: force regeneration of all indices
-#' @param force_all: force regeneration of all data in database
+#' @param database STATA file as provided by IFPRI
+#' @param path path of the IFPRI database images to process
+#' @param plot TRUE / FALSE (output summary plots?)
+#' @param force force regeneration of all indices
+#' @param force_all force regeneration of all data in database
 #' including estimating the horizon and ROI, as well as indices / features
 #' @keywords gcc calculation, QA/GC
 #' @export
@@ -241,7 +241,9 @@ process_image_db =
   # by additions in the ingested dta file, namely
   # the use of {} returns nested list instead
   # of data frames, which is a PITA
-  saveRDS(df,file = "cropmonitor.rds")
+  saveRDS(df,file = paste0(head(unlist(strsplit(basename(database),"\\.")),
+                                n = 1),
+                           ".rds"))
   
   # stop cluster
   stopCluster(cl)
