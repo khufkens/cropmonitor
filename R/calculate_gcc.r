@@ -49,6 +49,11 @@ calculate_gcc = function(img,
   # gcc 90 (90th percentile)
   gcc_90 = quantile(gcc, 0.9)
 
+  # mean colour values
+  r_dn = mean(raster::subset(img_region,1))
+  g_dn = mean(raster::subset(img_region,2))
+  b_dn = mean(raster::subset(img_region,3))
+  
   # GRVI (10th percentile)
   grvi_10 = quantile(grvi, 0.1)
 
@@ -56,5 +61,8 @@ calculate_gcc = function(img,
   return(list("roi" = roi$roi,
               "horizon" = roi$horizon,
               "gcc" = gcc_90,
-              "grvi" = grvi_10))
+              "grvi" = grvi_10,
+              "r_dn" = r_dn,
+              "g_dn" = g_dn,
+              "b_dn" = b_dn))
 }
