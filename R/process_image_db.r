@@ -47,9 +47,14 @@ process_image_db =
   # move into the directory
   setwd(path)
   
-  # read in database file
-  # sort by user id
-  df = readstata13::read.dta13(database)
+  # read in dta database file or RDS data file
+  file_format = tail(unlist(strsplit(basename(database),"\\.")), n = 1)
+  
+  if (file_format == "dta"){
+    df = readstata13::read.dta13(database)
+  } else {
+    df = readRDS(database)
+  }
   
   # check which files exist in the current directory
   # split out some variable for clarity
@@ -151,7 +156,7 @@ process_image_db =
     # is a free format comment not a picture
     # skip
     if (is.na(df$pic_timestamp[i])){
-      return(rep(NA,9))
+      return(rep(NA,12))
     }
     
     # load image
@@ -201,13 +206,18 @@ process_image_db =
     raster::removeTmpFiles()
 
     # return values
-    return(c(greenness_values$gcc,greenness_values$grvi,glcm_values$glcm,sobel_values$sobel))
+    return(c(greenness_values$dn,
+             greenness_values$gcc,
+             greenness_values$grvi,
+             glcm_values$glcm,
+             sobel_values$sobel))
   }
   
   # output matrix
   output = matrix(NA, nrow(df), 9)
   output[files_to_process,] = crop_index_details
-  colnames(output) = c("gcc_90",
+  colnames(output) = c("r_dn","g_dn","b_dn",
+                    "gcc_90",
                     "grvi",
                     "glcm_variance",
                     "glcm_homogeneity",

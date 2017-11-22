@@ -62,7 +62,5 @@ calculate_gcc = function(img,
               "horizon" = roi$horizon,
               "gcc" = gcc_90,
               "grvi" = grvi_10,
-              "r_dn" = r_dn,
-              "g_dn" = g_dn,
-              "b_dn" = b_dn))
+              "dn" = c(r_dn,g_dn,b_dn)))
 }
