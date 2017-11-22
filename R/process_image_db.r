@@ -14,10 +14,12 @@
 
 process_image_db = 
   function(database = NULL,
+           local_database = "cropmonitor.rds",
            path = "~/cropmonitor/",
            server = "http://cdn.wheatcam.ifpri.org/ReportImages",
            thumbnails = FALSE,
            force = TRUE,
+           force_all = FALSE,
            ncores = 6){
   
   # for consistency with list.files() use tilde
@@ -102,10 +104,10 @@ process_image_db =
   
   # compare current local database with the one provided
   # as a parameter
-  if (file.exists("cropmonitor.json") & force == FALSE ){
+  if (file.exists("cropmonitor.rds") & force == FALSE ){
     
     # read local database
-    local_database = jsonlite::fromJSON("cropmonitor.json")
+    local_database = readRDS(local_database)
     
     # check if the header is not the same
     # calculate everything regardless
@@ -129,7 +131,6 @@ process_image_db =
     duplicates = which(new_file_id %in% old_file_id)
     
     # copy duplicates
-    
   }
   
   # now loop over all new images in the database and fill in the
