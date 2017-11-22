@@ -47,6 +47,11 @@ process_image_db =
   # move into the directory
   setwd(path)
   
+  # error trap an empty database filename
+  if (is.null(database)){
+    stop("please provide a valid input file with experiment meta-data.")
+  }
+  
   # read in dta database file or RDS data file
   file_format = tail(unlist(strsplit(basename(database),"\\.")), n = 1)
   
