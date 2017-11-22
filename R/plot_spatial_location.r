@@ -4,9 +4,11 @@
 #' on the ground. Used in QA/QC for satellite
 #' data comparisons.
 #'
-#' @param df: cropmonitor database dataframe
-#' @param userfield: userfield, concated userid and field # as in user-field
-#' @param path: path location where to output summary graphics
+#' @param df cropmonitor database dataframe
+#' @param userfield userfield, concated userid and field # as in user-field
+#' @param path path location where to output summary graphics
+#' @param stack_path path to subsets of the HLS images, to map the grid of the
+#' harmonized landsat sentinel data
 #' @keywords QA/QC
 #' @export
 #' @examples
@@ -29,9 +31,8 @@
 
 plot_spatial_location = function(df = df,
                                  userfield = NULL,
-                                 path = "~"){
-  
-  library(gridExtra)
+                                 path = "~",
+                                 stack_path = "~"){
   
   if(is.null(userfield) || !is.character(userfield) ){
     stop("Please provide a userfield as a character string!")
@@ -42,6 +43,10 @@ plot_spatial_location = function(df = df,
   
   # subset the original data in the function
   df = df[which(df$userfield == userfield),]
+  
+  # get tif file which matches the userfield
+  tif_files = list.files(path = stack_path, "*.tif$", full.names = TRUE)
+  tif_file = tif_files[grepl(userfield, tif_files)]
   
   # generate strings for thumbs
   df$thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
@@ -54,6 +59,7 @@ plot_spatial_location = function(df = df,
   # grab median location
   lon = median(as.numeric(df$longitude), na.rm = TRUE)
   lat = median(as.numeric(df$latitude), na.rm = TRUE)
+  lat_off = median(as.numeric(df$latitude_offset), na.rm = TRUE)
   
   # check if files exist on disk
   df$thumbs_exist = unlist(lapply(df$thumbs, file.exists))
@@ -67,7 +73,7 @@ plot_spatial_location = function(df = df,
                          color = "color",
                          source = "google",
                          maptype = "satellite",
-                         zoom = 18), silent = TRUE)
+                         zoom = 17.5), silent = TRUE)
   
   if (inherits(mymap,"try-error")){
     stop("Server is unreachable or too many requests made!")
@@ -75,7 +81,8 @@ plot_spatial_location = function(df = df,
   
   # set point location
   point_loc = data.frame(lon = lon,
-                         lat = lat)
+                         lat = lat,
+                         lat_off = lat_off)
   
   # plot the google maps data
   p = ggmap::ggmap(mymap,
@@ -87,9 +94,34 @@ plot_spatial_location = function(df = df,
                    y = lat),
                color = "red",
                size = 3) +
+    geom_segment(data = point_loc, aes(x=lon, xend=lon, y=lat, yend=lat_off), 
+                 arrow = arrow(length = unit(0.5, "cm")),
+                 colour = "red") +
     labs(title = sprintf("User-Field: %s",userfield),
          fill = "") +
     theme(title = element_text(size = 18))
+  
+  if(length(tif_file) != 0){
+    
+    # test
+    print(tif_file)
+    
+    # read in the raster file and extract the grid
+    r = raster::rasterToPolygons(raster::raster(tif_file))
+    
+    # reproject
+    r = sp::spTransform(r, CRS("+init=epsg:4326"))
+    p = p + geom_polygon(data = fortify(r),
+                                          aes(long,lat,group=group),
+                                          colour = "yellow",
+                                          fill = NA) +
+      geom_point(data = point_loc,
+                 aes(x = lon,
+                     y = lat_off),
+                 color = "red",
+                 size = 3,
+                 shape = 3)
+  }
   
   # plot the thumbnail
   if (file.exists(thumbnail)){
