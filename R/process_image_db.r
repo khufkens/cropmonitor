@@ -220,9 +220,13 @@ process_image_db =
   }
   
   # output matrix
-  output = matrix(NA, nrow(df), 9)
+  output = matrix(NA, nrow(df), 12)
+  saveRDS(crop_index_details,"~/cropmonitor/cropindexdetails.rds")
   output[files_to_process,] = crop_index_details
-  colnames(output) = c("r_dn","g_dn","b_dn",
+  colnames(output) = c(
+                    "r_dn",
+                    "g_dn",
+                    "b_dn",
                     "gcc_90",
                     "grvi",
                     "glcm_variance",
