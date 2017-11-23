@@ -212,7 +212,9 @@ process_image_db =
     raster::removeTmpFiles()
 
     # return values
-    return(c(greenness_values$dn,
+    return(c(greenness_values$r_dn,
+             greenness_values$g_dn,
+             greenness_values$b_dn,
              greenness_values$gcc,
              greenness_values$grvi,
              glcm_values$glcm,
