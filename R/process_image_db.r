@@ -1,16 +1,15 @@
 #' Batch process all data in the IFPRI database using the
 #' automatic ROI detection methodology
 #'
-#' @param database STATA file as provided by IFPRI
-#' @param path path of the IFPRI database images to process
+#' @param database STATA or RDS file as provided by IFPRI
+#' @param path path of the local IFPRI database images to process images will be
+#' downloaded to local computer if no local copy exists
 #' @param plot TRUE / FALSE (output summary plots?)
 #' @param force force regeneration of all indices
 #' @param force_all force regeneration of all data in database
 #' including estimating the horizon and ROI, as well as indices / features
 #' @keywords gcc calculation, QA/GC
 #' @export
-#' @examples
-#' # no examples yet
 
 process_image_db = 
   function(database = NULL,
@@ -57,6 +56,7 @@ process_image_db =
   # read in dta database file or RDS data file
   file_format = tail(unlist(strsplit(basename(database),"\\.")), n = 1)
   
+  # read STATA or RDS data
   if (file_format == "dta"){
     df = readstata13::read.dta13(database)
   } else {
@@ -223,7 +223,7 @@ process_image_db =
   
   # output matrix
   output = matrix(NA, nrow(df), 12)
-  saveRDS(crop_index_details,"~/cropmonitor/cropindexdetails.rds")
+  
   output[files_to_process,] = crop_index_details
   colnames(output) = c(
                     "r_dn",
@@ -241,7 +241,7 @@ process_image_db =
   
   # write to file after combining with the
   # original database
-  df = data.frame(df,output)
+  df = data.frame(df[,1:17],output)
   
   # write new data to file
   # use rds not json as json gets fucked up easily
