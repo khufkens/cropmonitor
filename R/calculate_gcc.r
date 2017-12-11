@@ -6,8 +6,6 @@
 #' @param plot: plot resulting image with all available information
 #' @keywords gcc calculation
 #' @export
-#' @examples
-#' # no examples yet
 
 calculate_gcc = function(img,
                          roi = NULL,
