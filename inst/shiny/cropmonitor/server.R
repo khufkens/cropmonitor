@@ -1,18 +1,5 @@
 # server settings
-
 df = readRDS("~/cropmonitor/cropmonitor.rds")
-df = df[which(df$longitude > 70),]
-df = df[, -grep("questionnaireresult",names(df))]
-
-# strip the non unicode data from dataset by dropping the question
-# column
-
-# read questionair data
-if (file.exists("~/cropmonitor/questionaire.xlsx")){
-  quest = readxl::read_excel("~/cropmonitor/questionaire.xlsx")
-  quest = quest[,-(2:9)]
-  df = merge(df, quest, by = 'reportid', all.x = TRUE)
-}
 
 # generate strings for thumbs
 df$thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
@@ -22,7 +9,7 @@ df$thumbs = sprintf("~/cropmonitor/thumbs/%s/%s/%s-%s-%s.jpg",
                  df$old_uniquecropsiteid,
                  df$pic_timestamp)
 
-# create unique field vector
+# create unique field vector (uniqueuserid == HHID)
 df$userfield = paste(df$uniqueuserid,df$uniquecropsiteid,sep = "-")
 
 # summarize variables (ugly)
@@ -293,6 +280,9 @@ server = function(input, output, session) {
         greenness = plot_data$glcm_entropy
       } else if (input$plot_type == "homogeneity") {
         greenness = plot_data$glcm_homogeneity
+      } else if (input$plot_type == "rcc") {
+        greenness = plot_data$r_dn / (plot_data$r_dn + plot_data$g_dn + plot_data$b_dn)
+        print(greenness)
       }
       
       # create full date range vector
@@ -306,19 +296,14 @@ server = function(input, output, session) {
       greenness_ci = fit_greenness$se * 1.96
       greenness_smooth = fit_greenness$fit
       
-      # if the questionaire data is there plot additional info
-      if (any(grepl('q7',names(plot_data)))){
-        
-        # damage as in lodging
-        dam = which(plot_data$Lodg_winds == 1)
-        
-        # Irrigation dates
-        irr = grep("Irrigation",plot_data$q10)
-        
-        # Weeding dates
-        we = grep("Weeding",plot_data$q10)
-        
-      }
+      # damage as in lodging
+      dam = which(plot_data$lp_vis_dmg == 1)
+      
+      # Irrigation dates
+      irr = which(plot_data$did_irrigate == 1)
+      
+      # Weeding dates
+      we = which(plot_data$did_weed == 1)
       
       # check the plotting type
         p = plot_ly(

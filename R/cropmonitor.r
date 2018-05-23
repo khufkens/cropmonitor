@@ -11,7 +11,7 @@
 #' ## END NOT RUN
 
 cropmonitor = function(path = "~/cropmonitor",
-                       rdsfile = "cropmonitor_merged.rds"){
+                       rdsfile = "cropmonitor.rds"){
   
   if ( !dir.exists(path) ){
     stop("no data has been processed yet!\n 
@@ -25,5 +25,5 @@ cropmonitor = function(path = "~/cropmonitor",
   
   # start application
   appDir = sprintf("%s/shiny/cropmonitor",path.package("cropmonitor"))
-  shiny::runApp(appDir, display.mode = "normal",launch.browser=TRUE)
+  shiny::runApp(appDir, display.mode = "normal", launch.browser = TRUE)
 }

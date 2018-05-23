@@ -70,6 +70,7 @@ body = dashboardBody(
                           box(width = NULL,
                               selectInput("plot_type", "Plot Type",
                                           c("Gcc"="gcc",
+                                            "Rcc"="rcc",
                                             "GRVI"="grvi",
                                             "sobel"="sobel",
                                             "entropy"="entropy",
