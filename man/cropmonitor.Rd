@@ -4,7 +4,7 @@
 \alias{cropmonitor}
 \title{Start the cropmonitor shiny interface}
 \usage{
-cropmonitor(path = "~/cropmonitor")
+cropmonitor(path = "~/cropmonitor", rdsfile = "cropmonitor.rds")
 }
 \arguments{
 \item{path}{: a path were the data is stored (default = ~/cropmonitor/)}

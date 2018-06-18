@@ -43,8 +43,14 @@ update_image_db = function(database = NULL,
     stop("Not all required parameters available!")
   }
 
-  # read in database file
-  df = readstata13::read.dta13(database)
+  # read in dta database file or RDS data file
+  file_format = tail(unlist(strsplit(basename(database),"\\.")), n = 1)
+  
+  if (file_format == "dta"){
+    df = readstata13::read.dta13(database)
+  } else {
+    df = readRDS(database)
+  }
   
   # sort by user id
   df = df[order(df$old_uniqueuserid),]

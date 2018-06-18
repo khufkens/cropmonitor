@@ -1,23 +1,24 @@
 #' Batch process all data in the IFPRI database using the
 #' automatic ROI detection methodology
 #'
-#' @param database: STATA file as provided by IFPRI
-#' @param path: path of the IFPRI database images to process
-#' @param plot: TRUE / FALSE (output summary plots?)
-#' @param force: force regeneration of all indices
-#' @param force_all: force regeneration of all data in database
+#' @param database STATA or RDS file as provided by IFPRI
+#' @param path path of the local IFPRI database images to process images will be
+#' downloaded to local computer if no local copy exists
+#' @param plot TRUE / FALSE (output summary plots?)
+#' @param force force regeneration of all indices
+#' @param force_all force regeneration of all data in database
 #' including estimating the horizon and ROI, as well as indices / features
 #' @keywords gcc calculation, QA/GC
 #' @export
-#' @examples
-#' # no examples yet
 
 process_image_db = 
   function(database = NULL,
+           local_database = "cropmonitor.rds",
            path = "~/cropmonitor/",
            server = "http://cdn.wheatcam.ifpri.org/ReportImages",
            thumbnails = FALSE,
            force = TRUE,
+           force_all = FALSE,
            ncores = 6){
   
   # for consistency with list.files() use tilde
@@ -47,9 +48,20 @@ process_image_db =
   # move into the directory
   setwd(path)
   
-  # read in database file
-  # sort by user id
-  df = readstata13::read.dta13(database)
+  # error trap an empty database filename
+  if (is.null(database)){
+    stop("please provide a valid input file with experiment meta-data.")
+  }
+  
+  # read in dta database file or RDS data file
+  file_format = tail(unlist(strsplit(basename(database),"\\.")), n = 1)
+  
+  # read STATA or RDS data
+  if (file_format == "dta"){
+    df = readstata13::read.dta13(database)
+  } else {
+    df = readRDS(database)
+  }
   
   # check which files exist in the current directory
   # split out some variable for clarity
@@ -92,10 +104,10 @@ process_image_db =
   
   # compare current local database with the one provided
   # as a parameter
-  if (file.exists("cropmonitor.json") & force == FALSE ){
+  if (file.exists("cropmonitor.rds") & force == FALSE ){
     
     # read local database
-    local_database = jsonlite::fromJSON("cropmonitor.json")
+    local_database = readRDS(local_database)
     
     # check if the header is not the same
     # calculate everything regardless
@@ -119,7 +131,6 @@ process_image_db =
     duplicates = which(new_file_id %in% old_file_id)
     
     # copy duplicates
-    
   }
   
   # now loop over all new images in the database and fill in the
@@ -151,7 +162,7 @@ process_image_db =
     # is a free format comment not a picture
     # skip
     if (is.na(df$pic_timestamp[i])){
-      return(rep(NA,9))
+      return(rep(NA,12))
     }
     
     # load image
@@ -201,13 +212,24 @@ process_image_db =
     raster::removeTmpFiles()
 
     # return values
-    return(c(greenness_values$gcc,greenness_values$grvi,glcm_values$glcm,sobel_values$sobel))
+    return(c(greenness_values$r_dn,
+             greenness_values$g_dn,
+             greenness_values$b_dn,
+             greenness_values$gcc,
+             greenness_values$grvi,
+             glcm_values$glcm,
+             sobel_values$sobel))
   }
   
   # output matrix
-  output = matrix(NA, nrow(df), 9)
+  output = matrix(NA, nrow(df), 12)
+  
   output[files_to_process,] = crop_index_details
-  colnames(output) = c("gcc_90",
+  colnames(output) = c(
+                    "r_dn",
+                    "g_dn",
+                    "b_dn",
+                    "gcc_90",
                     "grvi",
                     "glcm_variance",
                     "glcm_homogeneity",
@@ -219,14 +241,16 @@ process_image_db =
   
   # write to file after combining with the
   # original database
-  df = data.frame(df,output)
+  df = data.frame(df[,1:17],output)
   
   # write new data to file
   # use rds not json as json gets fucked up easily
   # by additions in the ingested dta file, namely
   # the use of {} returns nested list instead
   # of data frames, which is a PITA
-  saveRDS(df,file = "cropmonitor.rds")
+  saveRDS(df,file = paste0(head(unlist(strsplit(basename(database),"\\.")),
+                                n = 1),
+                           ".rds"))
   
   # stop cluster
   stopCluster(cl)

@@ -10,8 +10,6 @@
 #' @examples
 #' # no examples yet
 
-
-
 auc = function(df, span = 0.3){
   
   # check length

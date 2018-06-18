@@ -6,8 +6,6 @@
 #' @param plot: plot resulting image with all available information
 #' @keywords gcc calculation
 #' @export
-#' @examples
-#' # no examples yet
 
 calculate_gcc = function(img,
                          roi = NULL,
@@ -41,20 +39,28 @@ calculate_gcc = function(img,
   # select the ROI from the original image
   img_region = raster::mask(img, roi$roi)
   
+  # mean colour values
+  r_dn = raster::cellStats(raster::subset(img_region, 1), 'mean')
+  g_dn = raster::cellStats(raster::subset(img_region, 2), 'mean')
+  b_dn = raster::cellStats(raster::subset(img_region, 3), 'mean')
+  
   # calculate various indices
   gcc = raster::subset(img_region,2) / sum(img_region)
   grvi = (raster::subset(img_region,2) -  raster::subset(img_region,1)) /
     (raster::subset(img_region,2) + raster::subset(img_region,1))
 
   # gcc 90 (90th percentile)
-  gcc_90 = quantile(gcc, 0.9)
-
+  gcc_90 = quantile(gcc, 0.9, na.rm = TRUE)
+  
   # GRVI (10th percentile)
-  grvi_10 = quantile(grvi, 0.1)
+  grvi_10 = quantile(grvi, 0.1, na.rm = TRUE)
 
   # return values as a structure list
   return(list("roi" = roi$roi,
               "horizon" = roi$horizon,
               "gcc" = gcc_90,
-              "grvi" = grvi_10))
+              "grvi" = grvi_10,
+              "r_dn" = r_dn,
+              "g_dn" = g_dn,
+              "b_dn" = b_dn))
 }

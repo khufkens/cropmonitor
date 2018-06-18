@@ -5,28 +5,27 @@
 \title{Batch process all data in the IFPRI database using the
 automatic ROI detection methodology}
 \usage{
-process_image_db(database = NULL, path = "~/cropmonitor/",
+process_image_db(database = NULL, local_database = "cropmonitor.rds",
+  path = "~/cropmonitor/",
   server = "http://cdn.wheatcam.ifpri.org/ReportImages", thumbnails = FALSE,
-  force = TRUE, ncores = 6)
+  force = TRUE, force_all = FALSE, ncores = 6)
 }
 \arguments{
-\item{database:}{STATA file as provided by IFPRI}
+\item{database}{STATA or RDS file as provided by IFPRI}
 
-\item{path:}{path of the IFPRI database images to process}
+\item{path}{path of the local IFPRI database images to process images will be
+downloaded to local computer if no local copy exists}
 
-\item{plot:}{TRUE / FALSE (output summary plots?)}
+\item{force}{force regeneration of all indices}
 
-\item{force:}{force regeneration of all indices}
-
-\item{force_all:}{force regeneration of all data in database
+\item{force_all}{force regeneration of all data in database
 including estimating the horizon and ROI, as well as indices / features}
+
+\item{plot}{TRUE / FALSE (output summary plots?)}
 }
 \description{
 Batch process all data in the IFPRI database using the
 automatic ROI detection methodology
-}
-\examples{
-# no examples yet
 }
 \keyword{QA/GC}
 \keyword{calculation,}

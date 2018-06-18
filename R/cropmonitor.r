@@ -10,19 +10,20 @@
 #' 
 #' ## END NOT RUN
 
-cropmonitor = function(path = "~/cropmonitor"){
+cropmonitor = function(path = "~/cropmonitor",
+                       rdsfile = "cropmonitor.rds"){
   
   if ( !dir.exists(path) ){
     stop("no data has been processed yet!\n 
          Please update the image database first using update_image_db()")
   }
 
-  if ( !file.exists(sprintf("%s/cropmonitor.json",path)) ){
+  if ( !file.exists(sprintf("%s/%s",path, rdsfile)) ){
     stop("no local database exists, please calculate the data first using\n
          process_image_db()")
   }
   
   # start application
   appDir = sprintf("%s/shiny/cropmonitor",path.package("cropmonitor"))
-  shiny::runApp(appDir, display.mode = "normal",launch.browser=TRUE)
+  shiny::runApp(appDir, display.mode = "normal", launch.browser = TRUE)
 }
